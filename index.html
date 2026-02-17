@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>총무의 정석 v.4.6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; user-select: none; transition: 0.3s; overflow: hidden; }
+        .dark-mode { background-color: #000; color: #fff; }
+        .dark-mode .bg-white { background-color: #111; border-color: #222; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); }
+        .tab-content { display: none; height: 100vh; overflow-y: auto; padding-bottom: 120px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-btn { transition: 0.3s; }
+        .nav-active { color: #ef4444; transform: scale(1.1); font-weight: 900; }
+        .category-pill.active { background-color: #ef4444; color: white; }
+        .category-pill.active-inc { background-color: #3b82f6; color: white; }
+        .bar-grow { transition: width 1s ease-in-out; }
+    </style>
+</head>
+<body id="bodyTag">
+
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative overflow-hidden flex flex-col">
+        
+        <main id="homeTab" class="tab-content active px-6 pt-10">
+            <header class="flex justify-between items-center mb-8">
+                <div onclick="openModal('groupModal')">
+                    <p id="groupName" class="text-[10px] font-black text-red-500 uppercase tracking-widest">우리 축구 모임 ⚽</p>
+                    <h1 class="text-2xl font-black italic">CHONGMU PRO</h1>
+                </div>
+                <button onclick="toggleDarkMode()" class="text-xl">🌓</button>
+            </header>
+
+            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl border-b-8 border-red-600 mb-8">
+                <p class="text-xs opacity-50 mb-1">현재 잔액</p>
+                <h2 id="mainBalance" class="text-4xl font-black tracking-tighter italic">0원</h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <button onclick="openEntryModal('NEW')" class="p-6 bg-gray-50 rounded-[2.5rem] flex flex-col items-start active:scale-95 transition">
+                    <span class="text-2xl mb-2">✍️</span>
+                    <span class="font-black text-sm text-gray-800">장부 기록</span>
+                </button>
+                <button onclick="backupData()" class="p-6 bg-gray-50 rounded-[2.5rem] flex flex-col items-start active:scale-95 transition">
+                    <span class="text-2xl mb-2">💾</span>
+                    <span class="font-black text-sm text-gray-800">백업/추출</span>
+                </button>
+            </div>
+
+            <h3 class="text-lg font-black mb-6">최근 활동 내역</h3>
+            <div id="activityList" class="space-y-4"></div>
+        </main>
+
+        <main id="statsTab" class="tab-content px-6 pt-10">
+            <h2 class="text-2xl font-black mb-6">재정 분석 보고서 📊</h2>
+            
+            <div class="flex gap-2 mb-8 bg-gray-100 p-1 rounded-2xl">
+                <button onclick="setPeriod('week')" id="p-week" class="flex-1 py-3 rounded-xl text-xs font-bold transition">주간</button>
+                <button onclick="setPeriod('month')" id="p-month" class="flex-1 py-3 rounded-xl text-xs font-bold transition bg-white shadow-sm">월간</button>
+                <button onclick="setPeriod('year')" id="p-year" class="flex-1 py-3 rounded-xl text-xs font-bold transition">년간</button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-6 rounded-[2rem]">
+                    <p class="text-[10px] font-black text-blue-500 mb-1 uppercase">Total Income</p>
+                    <h4 id="sumInc" class="text-2xl font-black text-blue-600">0원</h4>
+                    <div class="w-full bg-blue-100 h-2 mt-4 rounded-full overflow-hidden">
+                        <div id="barInc" class="bar-grow h-full bg-blue-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 p-6 rounded-[2rem]">
+                    <p class="text-[10px] font-black text-red-500 mb-1 uppercase">Total Expense</p>
+                    <h4 id="sumExp" class="text-2xl font-black text-red-600">0원</h4>
+                    <div class="w-full bg-red-100 h-2 mt-4 rounded-full overflow-hidden">
+                        <div id="barExp" class="bar-grow h-full bg-red-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="statsList" class="mt-10 space-y-4">
+                </div>
+        </main>
+
+        <div id="entryModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-end">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modalTitle" class="text-xl font-black">기록하기</h3>
+                    <button id="deleteBtn" onclick="deleteEntry()" class="text-xs font-bold text-red-500 hidden">내역 삭제</button>
+                </div>
+                <div class="flex gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
+                    <button id="typeExp" onclick="setEntryType('EXPENSE')" class="flex-1 py-2 rounded-lg font-bold">지출</button>
+                    <button id="typeInc" onclick="setEntryType('INCOME')" class="flex-1 py-2 rounded-lg font-bold">수입</button>
+                </div>
+                <div id="categoryWrapper" class="flex flex-wrap gap-2 mb-6"></div>
+                <input id="newTitle" type="text" placeholder="항목명" class="w-full border-b py-3 mb-4 font-bold text-lg outline-none">
+                <input id="newAmount" type="number" placeholder="금액" class="w-full border-b py-3 mb-8 font-black text-3xl text-red-500 outline-none">
+                <div class="flex gap-3">
+                    <button onclick="closeModal('entryModal')" class="flex-1 py-4 font-bold bg-gray-100 rounded-2xl">취소</button>
+                    <button onclick="submitEntry()" class="flex-1 py-4 font-black bg-slate-900 text-white rounded-2xl">저장하기</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] glass rounded-[2.5rem] p-4 flex justify-around shadow-2xl z-50">
+            <button onclick="switchTab('home')" id="btn-home" class="nav-btn nav-active text-2xl">🏠</button>
+            <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn opacity-30 text-2xl">📊</button>
+            <button class="nav-btn opacity-10 text-2xl grayscale">👥</button>
+            <button onclick="toggleDarkMode()" class="nav-btn text-2xl opacity-30">🌓</button>
+        </nav>
+    </div>
+
+    <script>
+        let currentType = 'EXPENSE';
+        let currentCategory = '';
+        let editingId = null;
+        let viewPeriod = 'month';
+
+        const categories = {
+            EXPENSE: ['식대', '물품구입', '직접입력'],
+            INCOME: ['회비', '찬조', '직접입력']
+        };
+
+        let state = JSON.parse(localStorage.getItem('chongmu_v46_db')) || {
+            currentGroup: "우리 축구 모임 ⚽",
+            groups: { "우리 축구 모임 ⚽": { balance: 0, activities: [] } }
+        };
+
+        function saveData() { localStorage.setItem('chongmu_v46_db', JSON.stringify(state)); }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('opacity-30'));
+            document.getElementById(id + 'Tab').classList.add('active');
+            document.getElementById('btn-' + id).classList.remove('opacity-30');
+            document.getElementById('btn-' + id).classList.add('nav-active');
+            render();
+        }
+
+        function setPeriod(p) {
+            viewPeriod = p;
+            ['week', 'month', 'year'].forEach(v => {
+                document.getElementById('p-'+v).className = v === p ? 
+                "flex-1 py-3 rounded-xl text-xs font-bold transition bg-white shadow-sm" : 
+                "flex-1 py-3 rounded-xl text-xs font-bold transition text-gray-400";
+            });
+            render();
+        }
+
+        function openEntryModal(mode, id = null) {
+            editingId = id;
+            if (mode === 'EDIT') {
+                const item = state.groups[state.currentGroup].activities.find(a => a.id === id);
+                currentCategory = item.category;
+                document.getElementById('newTitle').value = item.title;
+                document.getElementById('newAmount').value = Math.abs(item.amount);
+                setEntryType(item.amount > 0 ? 'INCOME' : 'EXPENSE');
+                document.getElementById('deleteBtn').classList.remove('hidden');
+            } else {
+                currentCategory = ''; document.getElementById('newTitle').value = '';
+                document.getElementById('newAmount').value = ''; setEntryType('EXPENSE');
+                document.getElementById('deleteBtn').classList.add('hidden');
+            }
+            document.getElementById('entryModal').classList.remove('hidden');
+        }
+
+        function setEntryType(type) {
+            currentType = type;
+            document.getElementById('typeExp').className = type === 'EXPENSE' ? 'flex-1 py-2 rounded-lg font-bold bg-red-500 text-white' : 'flex-1 py-2 rounded-lg font-bold text-gray-400';
+            document.getElementById('typeInc').className = type === 'INCOME' ? 'flex-1 py-2 rounded-lg font-bold bg-blue-500 text-white' : 'flex-1 py-2 rounded-lg font-bold text-gray-400';
+            
+            document.getElementById('categoryWrapper').innerHTML = categories[type].map(c => `
+                <div onclick="setCategory('${c}')" class="category-pill px-4 py-2 rounded-full text-[10px] font-bold border ${currentCategory === c ? (type === 'EXPENSE' ? 'active' : 'active-inc') : 'bg-gray-50 text-gray-400'}">${c}</div>
+            `).join('');
+        }
+
+        function setCategory(c) {
+            currentCategory = c; if(c !== '직접입력') document.getElementById('newTitle').value = c;
+            setEntryType(currentType);
+        }
+
+        function submitEntry() {
+            const title = document.getElementById('newTitle').value;
+            let amount = parseInt(document.getElementById('newAmount').value);
+            if (!amount) return;
+            const group = state.groups[state.currentGroup];
+            if (currentType === 'EXPENSE') amount = -amount;
+
+            if (editingId) {
+                const idx = group.activities.findIndex(a => a.id === editingId);
+                group.activities[idx] = { ...group.activities[idx], title, amount, category: currentCategory };
+            } else {
+                group.activities.unshift({ id: Date.now(), title, amount, category: currentCategory, date: new Date().toISOString() });
+            }
+            group.balance = group.activities.reduce((s, a) => s + a.amount, 0);
+            saveData(); render(); closeModal('entryModal');
+        }
+
+        function deleteEntry() {
+            if(!confirm("삭제할까요?")) return;
+            const group = state.groups[state.currentGroup];
+            group.activities = group.activities.filter(a => a.id !== editingId);
+            group.balance = group.activities.reduce((s, a) => s + a.amount, 0);
+            saveData(); render(); closeModal('entryModal');
+        }
+
+        function render() {
+            const group = state.groups[state.currentGroup];
+            document.getElementById('mainBalance').innerText = group.balance.toLocaleString() + "원";
+
+            // 필터링 및 통계
+            const now = new Date();
+            const filtered = group.activities.filter(a => {
+                const d = new Date(a.date);
+                if(viewPeriod === 'week') return (now - d) / 86400000 <= 7;
+                if(viewPeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                return d.getFullYear() === now.getFullYear();
+            });
+
+            const inc = filtered.filter(a => a.amount > 0).reduce((s, a) => s + a.amount, 0);
+            const exp = Math.abs(filtered.filter(a => a.amount < 0).reduce((s, a) => s + a.amount, 0));
+            
+            document.getElementById('sumInc').innerText = inc.toLocaleString() + "원";
+            document.getElementById('sumExp').innerText = exp.toLocaleString() + "원";
+            const max = Math.max(inc, exp, 1);
+            document.getElementById('barInc').style.width = (inc/max*100) + "%";
+            document.getElementById('barExp').style.width = (exp/max*100) + "%";
+
+            // 리스트 렌더링 (홈 & 통계 공통)
+            const listHtml = (data) => data.map(a => `
+                <div onclick="openEntryModal('EDIT', ${a.id})" class="flex justify-between items-center p-5 bg-white border border-gray-50 rounded-[2rem] shadow-sm active:scale-95 transition">
+                    <div class="flex items-center gap-3">
+                        <div class="text-lg">${a.amount > 0 ? '💰' : '💸'}</div>
+                        <div><p class="font-black text-xs">${a.title}</p><p class="text-[8px] text-gray-400 font-bold">${new Date(a.date).toLocaleDateString()} • ${a.category}</p></div>
+                    </div>
+                    <span class="font-black text-sm ${a.amount > 0 ? 'text-blue-500' : 'text-slate-900'}">${a.amount.toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('activityList').innerHTML = listHtml(group.activities.slice(0, 5)); // 홈엔 최근 5개만
+            document.getElementById('statsList').innerHTML = listHtml(filtered); // 통계엔 필터링 전체
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function backupData() {
+            const blob = new Blob([JSON.stringify(state)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'chongmu_pro_data.json'; a.click();
+        }
+
+        render();
+    </script>
+</body>
+</html>
