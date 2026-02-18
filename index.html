@@ -3,256 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>총무의 정석 v.4.6</title>
+    <title>CHONGMU VISION v6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; user-select: none; transition: 0.3s; overflow: hidden; }
-        .dark-mode { background-color: #000; color: #fff; }
-        .dark-mode .bg-white { background-color: #111; border-color: #222; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); }
-        .tab-content { display: none; height: 100vh; overflow-y: auto; padding-bottom: 120px; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f7; user-select: none; color: #2d3436; }
+        .tab-content { display: none; min-height: 100vh; padding-bottom: 120px; animation: fadeIn 0.3s ease-out; }
+        .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-btn { transition: 0.3s; }
-        .nav-active { color: #ef4444; transform: scale(1.1); font-weight: 900; }
-        .category-pill.active { background-color: #ef4444; color: white; }
-        .category-pill.active-inc { background-color: #3b82f6; color: white; }
-        .bar-grow { transition: width 1s ease-in-out; }
+        .nav-active { color: #ef4444 !important; font-weight: 900; }
+        .modal-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .event-photo { transition: opacity 0.5s ease-out; opacity: 1; }
+        .event-photo.hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body id="bodyTag">
+<body>
 
-    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative overflow-hidden flex flex-col">
+    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative">
         
         <main id="homeTab" class="tab-content active px-6 pt-10">
-            <header class="flex justify-between items-center mb-8">
-                <div onclick="openModal('groupModal')">
-                    <p id="groupName" class="text-[10px] font-black text-red-500 uppercase tracking-widest">우리 축구 모임 ⚽</p>
-                    <h1 class="text-2xl font-black italic">CHONGMU PRO</h1>
-                </div>
-                <button onclick="toggleDarkMode()" class="text-xl">🌓</button>
-            </header>
-
-            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl border-b-8 border-red-600 mb-8">
-                <p class="text-xs opacity-50 mb-1">현재 잔액</p>
-                <h2 id="mainBalance" class="text-4xl font-black tracking-tighter italic">0원</h2>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-10">
-                <button onclick="openEntryModal('NEW')" class="p-6 bg-gray-50 rounded-[2.5rem] flex flex-col items-start active:scale-95 transition">
-                    <span class="text-2xl mb-2">✍️</span>
-                    <span class="font-black text-sm text-gray-800">장부 기록</span>
-                </button>
-                <button onclick="backupData()" class="p-6 bg-gray-50 rounded-[2.5rem] flex flex-col items-start active:scale-95 transition">
-                    <span class="text-2xl mb-2">💾</span>
-                    <span class="font-black text-sm text-gray-800">백업/추출</span>
-                </button>
-            </div>
-
-            <h3 class="text-lg font-black mb-6">최근 활동 내역</h3>
-            <div id="activityList" class="space-y-4"></div>
-        </main>
-
-        <main id="statsTab" class="tab-content px-6 pt-10">
-            <h2 class="text-2xl font-black mb-6">재정 분석 보고서 📊</h2>
+            <h1 class="text-2xl font-black italic mb-6 text-red-600">CHONGMU VISION ⚽</h1>
             
-            <div class="flex gap-2 mb-8 bg-gray-100 p-1 rounded-2xl">
-                <button onclick="setPeriod('week')" id="p-week" class="flex-1 py-3 rounded-xl text-xs font-bold transition">주간</button>
-                <button onclick="setPeriod('month')" id="p-month" class="flex-1 py-3 rounded-xl text-xs font-bold transition bg-white shadow-sm">월간</button>
-                <button onclick="setPeriod('year')" id="p-year" class="flex-1 py-3 rounded-xl text-xs font-bold transition">년간</button>
+            <div class="bg-red-50 p-6 rounded-[2rem] border border-red-100 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-red-600">📢 공지사항</h3>
+                    <button onclick="editNotice()" class="text-[10px] font-bold bg-white px-2 py-1 rounded-full shadow-sm">수정</button>
+                </div>
+                <p id="noticeArea" class="text-sm font-medium leading-relaxed text-slate-700 whitespace-pre-wrap"></p>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-blue-50 p-6 rounded-[2rem]">
-                    <p class="text-[10px] font-black text-blue-500 mb-1 uppercase">Total Income</p>
-                    <h4 id="sumInc" class="text-2xl font-black text-blue-600">0원</h4>
-                    <div class="w-full bg-blue-100 h-2 mt-4 rounded-full overflow-hidden">
-                        <div id="barInc" class="bar-grow h-full bg-blue-500" style="width: 0%"></div>
-                    </div>
+            <div class="relative w-full h-48 bg-gray-100 rounded-[2rem] overflow-hidden mb-8 shadow-md">
+                <input type="file" id="emblemUpload" accept="image/*" class="hidden" onchange="uploadImage('emblem')">
+                <div id="emblemArea" class="absolute inset-0 flex items-center justify-center cursor-pointer" onclick="document.getElementById('emblemUpload').click()">
+                    <span id="emblemText" class="text-gray-400 font-bold text-sm">모임 엠블럼 업로드</span>
+                    <img id="emblemImg" src="" class="absolute inset-0 w-full h-full object-cover hidden">
                 </div>
 
-                <div class="bg-red-50 p-6 rounded-[2rem]">
-                    <p class="text-[10px] font-black text-red-500 mb-1 uppercase">Total Expense</p>
-                    <h4 id="sumExp" class="text-2xl font-black text-red-600">0원</h4>
-                    <div class="w-full bg-red-100 h-2 mt-4 rounded-full overflow-hidden">
-                        <div id="barExp" class="bar-grow h-full bg-red-500" style="width: 0%"></div>
-                    </div>
+                <input type="file" id="eventUpload" accept="image/*" class="hidden" onchange="uploadImage('event')">
+                <div id="eventPhotoArea" class="absolute inset-0 flex items-center justify-center text-white bg-black/60 cursor-pointer event-photo hidden" onclick="hideEventPhoto()">
+                    <span class="z-10 font-bold">터치하면 사라집니다</span>
+                    <img id="eventPhotoImg" src="" class="absolute inset-0 w-full h-full object-cover">
+                    <button class="absolute top-4 right-4 text-white text-[10px] bg-black/50 px-2 py-1 rounded-full" onclick="event.stopPropagation(); document.getElementById('eventUpload').click()">교체</button>
                 </div>
             </div>
 
-            <div id="statsList" class="mt-10 space-y-4">
-                </div>
+            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl mb-10">
+                <p class="text-[10px] font-bold opacity-50 mb-1 tracking-widest uppercase">Total Balance</p>
+                <h2 id="mainBalance" class="text-4xl font-black italic">0원</h2>
+            </div>
+
+            <h3 class="font-black mb-4">최근 내역</h3>
+            <div id="mainHistory" class="space-y-3"></div>
         </main>
 
-        <div id="entryModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-end">
-            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 id="modalTitle" class="text-xl font-black">기록하기</h3>
-                    <button id="deleteBtn" onclick="deleteEntry()" class="text-xs font-bold text-red-500 hidden">내역 삭제</button>
+        <main id="memberTab" class="tab-content px-6 pt-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black">회원 관리 👥</h2>
+                <button onclick="openMemberModal()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black">+ 회원추가</button>
+            </div>
+            <div id="memberList" class="space-y-4"></div>
+        </main>
+
+        <main id="ledgerTab" class="tab-content px-6 pt-10">
+            <h2 class="text-2xl font-black mb-6">장부 기록 📝</h2>
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <button onclick="openLedgerModal('INCOME')" class="bg-blue-500 text-white py-6 rounded-[2rem] font-black">💰 수입 입력</button>
+                <button onclick="openLedgerModal('EXPENSE')" class="bg-slate-800 text-white py-6 rounded-[2rem] font-black">💸 지출 입력</button>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] shadow-md mb-8">
+                <canvas id="balanceChart"></canvas>
+            </div>
+            <div id="fullHistory" class="space-y-3"></div>
+        </main>
+
+        <div id="memberModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 h-[90vh] overflow-y-auto modal-up">
+                <h3 id="memberModalTitle" class="text-xl font-black mb-6">회원 정보</h3>
+                <div class="space-y-4 mb-8">
+                    <div class="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4 overflow-hidden flex items-center justify-center cursor-pointer" onclick="document.getElementById('mPhotoUpload').click()">
+                        <img id="mPhotoPreview" src="" class="w-full h-full object-cover hidden">
+                        <span id="mPhotoText" class="text-gray-400 text-xs text-center">사진<br>등록</span>
+                    </div>
+                    <input type="file" id="mPhotoUpload" class="hidden" onchange="previewMemberPhoto(event)">
+                    <input id="mName" type="text" placeholder="이름" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="mAge" type="number" placeholder="나이" class="p-4 bg-gray-100 rounded-xl outline-none">
+                        <input id="mBirth" type="text" placeholder="생년월일(8자리)" class="p-4 bg-gray-100 rounded-xl outline-none">
+                    </div>
+                    <input id="mPhone" type="tel" placeholder="전화번호" class="w-full p-4 bg-gray-100 rounded-xl outline-none">
+                    <input id="mAddress" type="text" placeholder="주소" class="w-full p-4 bg-gray-100 rounded-xl outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="mHeight" type="number" placeholder="키(cm)" class="p-4 bg-gray-100 rounded-xl outline-none">
+                        <input id="mWeight" type="number" placeholder="몸무게(kg)" class="p-4 bg-gray-100 rounded-xl outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="mShoes" type="number" placeholder="신발 사이즈" class="p-4 bg-gray-100 rounded-xl outline-none">
+                        <input id="mClothes" type="text" placeholder="옷 사이즈" class="p-4 bg-gray-100 rounded-xl outline-none">
+                    </div>
+                    <textarea id="mNote" placeholder="비고" class="w-full p-4 bg-gray-100 rounded-xl h-20 outline-none"></textarea>
                 </div>
-                <div class="flex gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
-                    <button id="typeExp" onclick="setEntryType('EXPENSE')" class="flex-1 py-2 rounded-lg font-bold">지출</button>
-                    <button id="typeInc" onclick="setEntryType('INCOME')" class="flex-1 py-2 rounded-lg font-bold">수입</button>
-                </div>
-                <div id="categoryWrapper" class="flex flex-wrap gap-2 mb-6"></div>
-                <input id="newTitle" type="text" placeholder="항목명" class="w-full border-b py-3 mb-4 font-bold text-lg outline-none">
-                <input id="newAmount" type="number" placeholder="금액" class="w-full border-b py-3 mb-8 font-black text-3xl text-red-500 outline-none">
-                <div class="flex gap-3">
-                    <button onclick="closeModal('entryModal')" class="flex-1 py-4 font-bold bg-gray-100 rounded-2xl">취소</button>
-                    <button onclick="submitEntry()" class="flex-1 py-4 font-black bg-slate-900 text-white rounded-2xl">저장하기</button>
+                <div class="flex gap-2">
+                    <button onclick="deleteMember()" id="delMemBtn" class="flex-1 py-4 bg-red-100 text-red-500 font-bold rounded-2xl hidden">탈퇴</button>
+                    <button onclick="closeModal('memberModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
+                    <button onclick="saveMember()" class="flex-[2] py-4 bg-red-500 text-white font-black rounded-2xl">저장하기</button>
                 </div>
             </div>
         </div>
 
-        <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] glass rounded-[2.5rem] p-4 flex justify-around shadow-2xl z-50">
-            <button onclick="switchTab('home')" id="btn-home" class="nav-btn nav-active text-2xl">🏠</button>
-            <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn opacity-30 text-2xl">📊</button>
-            <button class="nav-btn opacity-10 text-2xl grayscale">👥</button>
-            <button onclick="toggleDarkMode()" class="nav-btn text-2xl opacity-30">🌓</button>
+        <div id="ledgerModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 modal-up">
+                <h3 id="lTitle" class="text-xl font-black mb-6 italic">입력</h3>
+                <div class="space-y-4 mb-8">
+                    <select id="lMember" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold"></select>
+                    <input id="lCategory" type="text" placeholder="항목 (회비, 찬조, 식대 등)" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
+                    <input id="lAmount" type="number" placeholder="금액" class="w-full p-4 bg-gray-100 rounded-xl outline-none text-2xl font-black text-red-500">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="closeModal('ledgerModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
+                    <button onclick="saveLedger()" class="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl">저장하기</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-md rounded-[2.5rem] shadow-2xl border flex justify-around items-center px-4 z-50">
+            <button onclick="switchTab('home')" id="n-home" class="nav-active flex flex-col items-center"><span class="text-xl">🏠</span><span class="text-[8px] font-black">홈</span></button>
+            <button onclick="switchTab('member')" id="n-member" class="text-slate-300 flex flex-col items-center"><span class="text-xl">👥</span><span class="text-[8px] font-black">회원</span></button>
+            <button onclick="switchTab('ledger')" id="n-ledger" class="text-slate-300 flex flex-col items-center"><span class="text-xl">📝</span><span class="text-[8px] font-black">장부</span></button>
+            <button onclick="backupData()" class="text-slate-300 flex flex-col items-center"><span class="text-xl">💾</span><span class="text-[8px] font-black">백업</span></button>
         </nav>
     </div>
 
     <script>
-        let currentType = 'EXPENSE';
-        let currentCategory = '';
-        let editingId = null;
-        let viewPeriod = 'month';
-
-        const categories = {
-            EXPENSE: ['식대', '물품구입', '직접입력'],
-            INCOME: ['회비', '찬조', '직접입력']
+        let db = JSON.parse(localStorage.getItem('chongmu_v61_db')) || {
+            notice: "우리 모임 화이팅!",
+            emblem: null,
+            eventPhoto: null,
+            members: [],
+            history: []
         };
+        let currentMode = 'INCOME';
+        let editingMemberId = null;
+        let chart = null;
 
-        let state = JSON.parse(localStorage.getItem('chongmu_v46_db')) || {
-            currentGroup: "우리 축구 모임 ⚽",
-            groups: { "우리 축구 모임 ⚽": { balance: 0, activities: [] } }
-        };
-
-        function saveData() { localStorage.setItem('chongmu_v46_db', JSON.stringify(state)); }
+        function saveData() { 
+            localStorage.setItem('chongmu_v61_db', JSON.stringify(db)); 
+            render(); 
+        }
 
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('opacity-30'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-slate-300'));
             document.getElementById(id + 'Tab').classList.add('active');
-            document.getElementById('btn-' + id).classList.remove('opacity-30');
-            document.getElementById('btn-' + id).classList.add('nav-active');
+            document.getElementById('n-' + id).classList.remove('text-slate-300');
+            document.getElementById('n-' + id).classList.add('nav-active');
+            if(id === 'ledger') setTimeout(drawChart, 100);
             render();
         }
 
-        function setPeriod(p) {
-            viewPeriod = p;
-            ['week', 'month', 'year'].forEach(v => {
-                document.getElementById('p-'+v).className = v === p ? 
-                "flex-1 py-3 rounded-xl text-xs font-bold transition bg-white shadow-sm" : 
-                "flex-1 py-3 rounded-xl text-xs font-bold transition text-gray-400";
-            });
-            render();
+        function editNotice() {
+            const n = prompt("공지사항 수정", db.notice);
+            if(n !== null) { db.notice = n; saveData(); }
         }
 
-        function openEntryModal(mode, id = null) {
-            editingId = id;
-            if (mode === 'EDIT') {
-                const item = state.groups[state.currentGroup].activities.find(a => a.id === id);
-                currentCategory = item.category;
-                document.getElementById('newTitle').value = item.title;
-                document.getElementById('newAmount').value = Math.abs(item.amount);
-                setEntryType(item.amount > 0 ? 'INCOME' : 'EXPENSE');
-                document.getElementById('deleteBtn').classList.remove('hidden');
+        function uploadImage(type) {
+            const file = document.getElementById(type + 'Upload').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => { db[type] = e.target.result; saveData(); };
+            reader.readAsDataURL(file);
+        }
+
+        function hideEventPhoto() { document.getElementById('eventPhotoArea').classList.add('hidden'); }
+
+        function openMemberModal(id = null) {
+            editingMemberId = id;
+            resetMemberFields();
+            if(id) {
+                const m = db.members.find(x => x.id === id);
+                document.getElementById('mName').value = m.name;
+                document.getElementById('mAge').value = m.age;
+                document.getElementById('mBirth').value = m.birth;
+                document.getElementById('mPhone').value = m.phone;
+                document.getElementById('mAddress').value = m.address;
+                document.getElementById('mHeight').value = m.height;
+                document.getElementById('mWeight').value = m.weight;
+                document.getElementById('mShoes').value = m.shoes;
+                document.getElementById('mClothes').value = m.clothes;
+                document.getElementById('mNote').value = m.note;
+                if(m.photo) {
+                    document.getElementById('mPhotoPreview').src = m.photo;
+                    document.getElementById('mPhotoPreview').classList.remove('hidden');
+                    document.getElementById('mPhotoText').classList.add('hidden');
+                }
+                document.getElementById('delMemBtn').classList.remove('hidden');
             } else {
-                currentCategory = ''; document.getElementById('newTitle').value = '';
-                document.getElementById('newAmount').value = ''; setEntryType('EXPENSE');
-                document.getElementById('deleteBtn').classList.add('hidden');
+                document.getElementById('delMemBtn').classList.add('hidden');
             }
-            document.getElementById('entryModal').classList.remove('hidden');
+            document.getElementById('memberModal').classList.remove('hidden');
         }
 
-        function setEntryType(type) {
-            currentType = type;
-            document.getElementById('typeExp').className = type === 'EXPENSE' ? 'flex-1 py-2 rounded-lg font-bold bg-red-500 text-white' : 'flex-1 py-2 rounded-lg font-bold text-gray-400';
-            document.getElementById('typeInc').className = type === 'INCOME' ? 'flex-1 py-2 rounded-lg font-bold bg-blue-500 text-white' : 'flex-1 py-2 rounded-lg font-bold text-gray-400';
-            
-            document.getElementById('categoryWrapper').innerHTML = categories[type].map(c => `
-                <div onclick="setCategory('${c}')" class="category-pill px-4 py-2 rounded-full text-[10px] font-bold border ${currentCategory === c ? (type === 'EXPENSE' ? 'active' : 'active-inc') : 'bg-gray-50 text-gray-400'}">${c}</div>
-            `).join('');
+        function resetMemberFields() {
+            ['mName','mAge','mBirth','mPhone','mAddress','mHeight','mWeight','mShoes','mClothes','mNote'].forEach(f => document.getElementById(f).value = '');
+            document.getElementById('mPhotoPreview').src = '';
+            document.getElementById('mPhotoPreview').classList.add('hidden');
+            document.getElementById('mPhotoText').classList.remove('hidden');
+            document.getElementById('mPhotoUpload').value = null;
         }
 
-        function setCategory(c) {
-            currentCategory = c; if(c !== '직접입력') document.getElementById('newTitle').value = c;
-            setEntryType(currentType);
+        function previewMemberPhoto(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('mPhotoPreview').src = ev.target.result;
+                    document.getElementById('mPhotoPreview').classList.remove('hidden');
+                    document.getElementById('mPhotoText').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
-        function submitEntry() {
-            const title = document.getElementById('newTitle').value;
-            let amount = parseInt(document.getElementById('newAmount').value);
-            if (!amount) return;
-            const group = state.groups[state.currentGroup];
-            if (currentType === 'EXPENSE') amount = -amount;
+        // [여기가 수정된 저장 함수입니다]
+        function saveMember() {
+            const photo = document.getElementById('mPhotoPreview').src;
+            const member = {
+                id: editingMemberId || Date.now(),
+                name: document.getElementById('mName').value,
+                age: document.getElementById('mAge').value,
+                birth: document.getElementById('mBirth').value,
+                phone: document.getElementById('mPhone').value,
+                address: document.getElementById('mAddress').value,
+                height: document.getElementById('mHeight').value,
+                weight: document.getElementById('mWeight').value,
+                shoes: document.getElementById('mShoes').value,
+                clothes: document.getElementById('mClothes').value,
+                note: document.getElementById('mNote').value,
+                photo: photo.startsWith('data') ? photo : null,
+                totalPaid: editingMemberId ? db.members.find(x => x.id === editingMemberId).totalPaid : 0
+            };
 
-            if (editingId) {
-                const idx = group.activities.findIndex(a => a.id === editingId);
-                group.activities[idx] = { ...group.activities[idx], title, amount, category: currentCategory };
+            if(!member.name) return alert("이름을 입력하세요!");
+
+            if(editingMemberId) {
+                const idx = db.members.findIndex(x => x.id === editingMemberId);
+                db.members[idx] = member;
             } else {
-                group.activities.unshift({ id: Date.now(), title, amount, category: currentCategory, date: new Date().toISOString() });
+                db.members.push(member);
             }
-            group.balance = group.activities.reduce((s, a) => s + a.amount, 0);
-            saveData(); render(); closeModal('entryModal');
+
+            saveData();
+            closeModal('memberModal'); // 창 닫기
+            alert("회원 정보가 저장되었습니다.");
         }
 
-        function deleteEntry() {
-            if(!confirm("삭제할까요?")) return;
-            const group = state.groups[state.currentGroup];
-            group.activities = group.activities.filter(a => a.id !== editingId);
-            group.balance = group.activities.reduce((s, a) => s + a.amount, 0);
-            saveData(); render(); closeModal('entryModal');
+        function deleteMember() {
+            if(!confirm("탈퇴 처리할까요?")) return;
+            db.members = db.members.filter(x => x.id !== editingMemberId);
+            saveData();
+            closeModal('memberModal');
         }
 
-        function render() {
-            const group = state.groups[state.currentGroup];
-            document.getElementById('mainBalance').innerText = group.balance.toLocaleString() + "원";
+        function openLedgerModal(mode) {
+            currentMode = mode;
+            document.getElementById('lTitle').innerText = mode === 'INCOME' ? '💰 수입 기록' : '💸 지출 기록';
+            document.getElementById('lMember').innerHTML = '<option value="">회원 선택(지출시 패스)</option>' + 
+                db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+            document.getElementById('lCategory').value = '';
+            document.getElementById('lAmount').value = '';
+            document.getElementById('ledgerModal').classList.remove('hidden');
+        }
 
-            // 필터링 및 통계
-            const now = new Date();
-            const filtered = group.activities.filter(a => {
-                const d = new Date(a.date);
-                if(viewPeriod === 'week') return (now - d) / 86400000 <= 7;
-                if(viewPeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                return d.getFullYear() === now.getFullYear();
-            });
+        function saveLedger() {
+            const name = document.getElementById('lMember').value;
+            const cat = document.getElementById('lCategory').value;
+            let amt = parseInt(document.getElementById('lAmount').value);
+            if(!amt || !cat) return alert("내역을 확인하세요.");
+            if(currentMode === 'EXPENSE') amt = -amt;
 
-            const inc = filtered.filter(a => a.amount > 0).reduce((s, a) => s + a.amount, 0);
-            const exp = Math.abs(filtered.filter(a => a.amount < 0).reduce((s, a) => s + a.amount, 0));
-            
-            document.getElementById('sumInc').innerText = inc.toLocaleString() + "원";
-            document.getElementById('sumExp').innerText = exp.toLocaleString() + "원";
-            const max = Math.max(inc, exp, 1);
-            document.getElementById('barInc').style.width = (inc/max*100) + "%";
-            document.getElementById('barExp').style.width = (exp/max*100) + "%";
-
-            // 리스트 렌더링 (홈 & 통계 공통)
-            const listHtml = (data) => data.map(a => `
-                <div onclick="openEntryModal('EDIT', ${a.id})" class="flex justify-between items-center p-5 bg-white border border-gray-50 rounded-[2rem] shadow-sm active:scale-95 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="text-lg">${a.amount > 0 ? '💰' : '💸'}</div>
-                        <div><p class="font-black text-xs">${a.title}</p><p class="text-[8px] text-gray-400 font-bold">${new Date(a.date).toLocaleDateString()} • ${a.category}</p></div>
-                    </div>
-                    <span class="font-black text-sm ${a.amount > 0 ? 'text-blue-500' : 'text-slate-900'}">${a.amount.toLocaleString()}</span>
-                </div>
-            `).join('');
-
-            document.getElementById('activityList').innerHTML = listHtml(group.activities.slice(0, 5)); // 홈엔 최근 5개만
-            document.getElementById('statsList').innerHTML = listHtml(filtered); // 통계엔 필터링 전체
+            db.history.unshift({ id: Date.now(), name, cat, amt, date: new Date().toLocaleDateString() });
+            if(currentMode === 'INCOME' && name) {
+                const m = db.members.find(x => x.name === name);
+                if(m) m.totalPaid = (m.totalPaid || 0) + amt;
+            }
+            saveData();
+            closeModal('ledgerModal');
         }
 
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+        function render() {
+            document.getElementById('noticeArea').innerText = db.notice;
+            const total = db.history.reduce((s, a) => s + a.amt, 0);
+            document.getElementById('mainBalance').innerText = total.toLocaleString() + "원";
+
+            // 이미지
+            if(db.emblem) { document.getElementById('emblemImg').src = db.emblem; document.getElementById('emblemImg').classList.remove('hidden'); document.getElementById('emblemText').classList.add('hidden'); }
+            if(db.eventPhoto) { document.getElementById('eventPhotoImg').src = db.eventPhoto; document.getElementById('eventPhotoArea').classList.remove('hidden'); }
+
+            // 회원 리스트
+            document.getElementById('memberList').innerHTML = db.members.map(m => `
+                <div onclick="openMemberModal(${m.id})" class="p-6 bg-white rounded-[2rem] shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                            ${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `<span class="text-2xl">👤</span>`}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-black">${m.name} <span class="text-[10px] text-gray-400">${m.age || ''}</span></h4>
+                            <p class="text-[10px] text-gray-400 font-bold">${m.phone || ''}</p>
+                        </div>
+                        <div class="text-right"><p class="text-[9px] font-bold text-blue-500">납부합계</p><p class="font-black text-sm">${(m.totalPaid || 0).toLocaleString()}원</p></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // 히스토리
+            const hHtml = (d) => d.map(h => `
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div><p class="font-black text-xs">${h.cat}</p><p class="text-[8px] text-gray-400">${h.date} ${h.name ? '· '+h.name : ''}</p></div>
+                    <span class="font-black text-sm ${h.amt > 0 ? 'text-blue-500' : 'text-slate-800'}">${h.amt.toLocaleString()}원</span>
+                </div>
+            `).join('');
+            document.getElementById('mainHistory').innerHTML = hHtml(db.history.slice(0, 5));
+            document.getElementById('fullHistory').innerHTML = hHtml(db.history);
+        }
+
+        function drawChart() {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            if(chart) chart.destroy();
+            const data = [...db.history].reverse();
+            let sum = 0;
+            const points = data.map(h => { sum += h.amt; return sum; });
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(h => h.date),
+                    datasets: [{ label: '잔액흐름', data: points, borderColor: '#ef4444', tension: 0.3, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+            });
+        }
+
         function backupData() {
-            const blob = new Blob([JSON.stringify(state)], {type: 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'chongmu_pro_data.json'; a.click();
+            const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `chongmu_backup.json`; a.click();
         }
 
         render();
