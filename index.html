@@ -3,251 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHONGMU V6.2 ADMIN</title>
+    <title>CHONGMU FINAL v9.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f7; color: #2d3436; margin: 0; }
-        .tab-content { display: none; min-height: 100vh; padding-bottom: 120px; animation: fadeIn 0.2s ease-out; }
-        .tab-content.active { display: block; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; }
+        .tab-content { display: none; min-height: 100vh; padding-bottom: 120px; }
+        .tab-content.active { display: block; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .nav-active { color: #ef4444 !important; font-weight: 900; }
-        .admin-only { display: none; } /* 관리자 전용 숨김 */
+        .admin-only { display: none !important; }
         .is-admin .admin-only { display: block !important; }
-        .is-admin .admin-flex { display: flex !important; }
+        input, select, textarea { font-size: 16px !important; }
     </style>
 </head>
-<body class="">
-    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative">
+<body>
+    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative overflow-x-hidden">
         
-        <div class="px-6 pt-6 flex justify-between items-center">
-            <h1 class="text-2xl font-black italic text-red-600">CHONGMU V6</h1>
-            <button onclick="toggleAdmin()" id="adminBtn" class="text-[10px] font-bold bg-slate-800 text-white px-3 py-1 rounded-full">🔐 관리자 로그인</button>
-        </div>
+        <header class="px-6 pt-8 pb-4 flex justify-between items-end sticky top-0 bg-white/90 backdrop-blur-md z-40 border-b border-slate-50">
+            <div>
+                <h1 id="groupNameDisplay" onclick="editGroupName()" class="text-2xl font-black text-slate-900 cursor-pointer">우리 모임 회</h1>
+            </div>
+            <div class="text-right">
+                <p class="text-[9px] font-bold text-slate-300 mb-2 uppercase italic tracking-tighter">CHONGMU v9.3</p>
+                <div class="flex gap-2">
+                    <button onclick="openModal('memberModal')" class="text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full">가입신청</button>
+                    <button onclick="toggleAdmin()" id="adminBtn" class="text-[10px] font-bold bg-slate-900 text-white px-3 py-1.5 rounded-full shadow-lg">🔐 관리자</button>
+                </div>
+            </div>
+        </header>
 
         <main id="homeTab" class="tab-content active px-6 pt-6">
-            <div class="bg-red-50 p-6 rounded-[2rem] border border-red-100 mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-black text-red-600">📢 공지사항</h3>
-                    <button onclick="editNotice()" class="admin-only text-[10px] font-bold bg-white px-2 py-1 rounded-full shadow-sm">수정</button>
-                </div>
-                <p id="noticeArea" class="text-sm font-medium text-slate-700 whitespace-pre-wrap"></p>
+            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-center text-white shadow-2xl mb-8">
+                <p class="text-[10px] font-bold opacity-40 mb-2 tracking-widest uppercase italic">Total Balance</p>
+                <h2 id="mainBalance" class="text-4xl font-black tracking-tight">0원</h2>
             </div>
 
-            <div class="relative w-full h-48 bg-gray-100 rounded-[2rem] overflow-hidden mb-6 shadow-md">
-                <input type="file" id="eventUpload" accept="image/*" class="hidden" onchange="uploadImage('event')">
-                <div id="eventArea" class="absolute inset-0 flex items-center justify-center cursor-pointer" onclick="handleImageClick()">
-                    <span id="eventText" class="text-gray-400 font-bold text-sm text-center">이벤트 사진<br><span class="admin-only text-[10px]">(클릭하여 업로드)</span></span>
-                    <img id="eventImg" src="" class="absolute inset-0 w-full h-full object-cover hidden">
-                </div>
-            </div>
+            <h3 class="font-black text-lg mb-4 px-1">최근 내역</h3>
+            <div id="mainHistory" class="space-y-3 mb-8"></div>
 
-            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl mb-8">
-                <p class="text-[10px] font-bold opacity-50 mb-1 uppercase tracking-widest">Total Balance</p>
-                <h2 id="mainBalance" class="text-4xl font-black italic">0원</h2>
+            <div class="bg-red-50 p-6 rounded-[2rem] border border-red-100 relative">
+                <h4 class="text-red-600 font-black text-[10px] mb-2 uppercase italic">Notice</h4>
+                <button onclick="editNotice()" class="admin-only absolute top-5 right-5 text-[10px] text-slate-400 font-bold underline">수정</button>
+                <p id="noticeArea" class="text-sm font-bold text-slate-700 leading-relaxed"></p>
             </div>
-
-            <h3 class="font-black mb-4">최근 내역</h3>
-            <div id="mainHistory" class="space-y-3"></div>
         </main>
 
         <main id="memberTab" class="tab-content px-6 pt-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black">회원 관리 👥</h2>
-                <button onclick="openMemberModal()" class="admin-only bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black">+ 추가</button>
+            <div id="pendingSection" class="admin-only mb-8">
+                <h3 class="text-orange-500 font-black text-sm mb-4 italic flex items-center gap-2">⚠️ 승인 대기 명단</h3>
+                <div id="pendingList" class="space-y-3"></div>
             </div>
+            <h3 class="font-black text-lg mb-6 px-1">회원 목록</h3>
             <div id="memberList" class="space-y-4"></div>
         </main>
 
         <main id="ledgerTab" class="tab-content px-6 pt-6">
-            <h2 class="text-2xl font-black mb-6">장부 기록 📝</h2>
-            <div class="admin-only grid grid-cols-2 gap-3 mb-6">
-                <button onclick="openLedgerModal('INCOME')" class="bg-blue-500 text-white py-6 rounded-[2rem] font-black shadow-lg">💰 수입</button>
-                <button onclick="openLedgerModal('EXPENSE')" class="bg-slate-800 text-white py-6 rounded-[2rem] font-black shadow-lg">💸 지출</button>
+            <div class="admin-only grid grid-cols-2 gap-3 mb-8">
+                <button onclick="openLedgerModal('INCOME')" class="bg-blue-600 text-white py-6 rounded-[2rem] font-black shadow-lg">💰 수입 입력</button>
+                <button onclick="openLedgerModal('EXPENSE')" class="bg-slate-800 text-white py-6 rounded-[2rem] font-black shadow-lg">💸 지출 입력</button>
             </div>
-
-            <div class="bg-white p-6 rounded-[2rem] shadow-md border border-gray-100 mb-6">
-                <div class="flex justify-center gap-2 mb-4">
-                    <button onclick="drawChart('week')" class="filter-btn text-[10px] px-3 py-1 rounded-full bg-gray-100 font-bold" id="f-week">주간</button>
-                    <button onclick="drawChart('month')" class="filter-btn text-[10px] px-3 py-1 rounded-full bg-slate-800 text-white font-bold" id="f-month">월간</button>
-                    <button onclick="drawChart('year')" class="filter-btn text-[10px] px-3 py-1 rounded-full bg-gray-100 font-bold" id="f-year">연간</button>
-                </div>
-                <canvas id="balanceChart" height="200"></canvas>
-            </div>
-
-            <h3 class="font-black mb-4">전체 내역</h3>
-            <div id="fullHistory" class="space-y-3"></div>
+            <div id="fullHistory" class="space-y-2"></div>
         </main>
 
-        <div id="memberModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
-            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 h-[85vh] overflow-y-auto modal-up">
-                <div class="w-20 h-20 rounded-full bg-gray-100 mx-auto mb-6 overflow-hidden flex items-center justify-center cursor-pointer" onclick="document.getElementById('mPhotoUpload').click()">
-                    <img id="mPhotoPreview" src="" class="w-full h-full object-cover hidden"><span id="mPhotoText" class="text-gray-400 text-[10px]">사진등록</span>
-                </div>
-                <input type="file" id="mPhotoUpload" class="hidden" onchange="previewMemberPhoto(event)">
-                <div class="space-y-3">
-                    <input id="mName" type="text" placeholder="이름 (필수)" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
-                    <input id="mPhone" type="tel" placeholder="전화번호" class="w-full p-4 bg-gray-100 rounded-xl outline-none">
-                    <div class="grid grid-cols-2 gap-2"><input id="mHeight" type="number" placeholder="키" class="p-4 bg-gray-100 rounded-xl outline-none"><input id="mWeight" type="number" placeholder="몸무게" class="p-4 bg-gray-100 rounded-xl outline-none"></div>
-                    <textarea id="mNote" placeholder="비고" class="w-full p-4 bg-gray-100 rounded-xl h-24 outline-none"></textarea>
-                </div>
-                <div class="flex gap-2 mt-8">
-                    <button id="delMemBtn" onclick="deleteMember()" class="flex-1 py-4 bg-red-100 text-red-500 font-bold rounded-2xl hidden">회원탈퇴</button>
-                    <button onclick="closeModal('memberModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
-                    <button onclick="saveMember()" class="flex-[2] py-4 bg-red-500 text-white font-black rounded-2xl">저장하기</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="ledgerModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
-            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 modal-up">
-                <h3 id="lTitle" class="text-xl font-black mb-6 italic text-center">입력</h3>
+        <div id="ledgerModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-end">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8">
+                <h3 id="lTitle" class="text-xl font-black mb-8 text-center uppercase tracking-tighter italic">Entry</h3>
                 <div class="space-y-4 mb-8">
-                    <select id="lMember" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold"></select>
-                    <input id="lCategory" type="text" placeholder="항목 (회비, 식대 등)" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
-                    <input id="lAmount" type="number" placeholder="금액" class="w-full p-4 bg-gray-100 rounded-xl outline-none text-2xl font-black text-red-500">
+                    <input id="lDate" type="date" class="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100">
+                    <select id="lMember" class="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100"></select>
+                    
+                    <div id="categoryArea" class="space-y-2">
+                        <div id="categoryPresets" class="flex gap-2 mb-2"></div>
+                        <input id="lCategory" type="text" placeholder="항목 직접 입력" class="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100">
+                    </div>
+
+                    <input id="lAmount" type="number" placeholder="금액" class="w-full p-4 bg-slate-50 rounded-2xl text-2xl font-black text-center text-red-600 outline-none border border-slate-100">
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="closeModal('ledgerModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
-                    <button onclick="saveLedger()" class="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl">기록 저장</button>
+                    <button onclick="closeModal('ledgerModal')" class="flex-1 py-5 bg-slate-100 font-bold rounded-2xl">취소</button>
+                    <button onclick="saveLedger()" class="flex-[2] py-5 bg-slate-900 text-white font-black rounded-2xl shadow-lg">기록 저장</button>
                 </div>
             </div>
         </div>
 
-        <nav class="fixed bottom-6 left-6 right-6 h-20 bg-white/95 backdrop-blur-sm rounded-[2.5rem] shadow-2xl border flex justify-around items-center px-4 z-50">
-            <button onclick="switchTab('home')" id="n-home" class="nav-active flex flex-col items-center"><span class="text-xl">🏠</span><span class="text-[8px] font-black">홈</span></button>
-            <button onclick="switchTab('member')" id="n-member" class="text-slate-300 flex flex-col items-center"><span class="text-xl">👥</span><span class="text-[8px] font-black">회원</span></button>
-            <button onclick="switchTab('ledger')" id="n-ledger" class="text-slate-300 flex flex-col items-center"><span class="text-xl">📝</span><span class="text-[8px] font-black">장부</span></button>
-            <button onclick="backupData()" class="text-slate-300 flex flex-col items-center"><span class="text-xl">💾</span><span class="text-[8px] font-black">백업</span></button>
+        <div id="memberModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-end">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8">
+                <h3 class="text-xl font-black mb-6">회원 가입 신청</h3>
+                <div class="space-y-4">
+                    <input id="mName" type="text" placeholder="이름" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold">
+                    <input id="mPhone" type="tel" placeholder="연락처" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold">
+                    <button onclick="requestJoin()" class="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-lg mt-4">신청하기</button>
+                    <button onclick="closeModal('memberModal')" class="w-full py-2 text-slate-400 font-bold">닫기</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-6 left-6 right-6 h-20 bg-white shadow-2xl rounded-[2.5rem] border border-slate-100 flex justify-around items-center px-6 z-40">
+            <button onclick="switchTab('home')" id="n-home" class="nav-active flex flex-col items-center gap-1"><span class="text-xl">🏠</span><span class="text-[9px] font-black uppercase">Home</span></button>
+            <button onclick="switchTab('member')" id="n-member" class="text-slate-300 flex flex-col items-center gap-1"><span class="text-xl">👥</span><span class="text-[9px] font-black uppercase">Member</span></button>
+            <button onclick="switchTab('ledger')" id="n-ledger" class="text-slate-300 flex flex-col items-center gap-1"><span class="text-xl">📊</span><span class="text-[9px] font-black uppercase">Ledger</span></button>
+            <button onclick="backupData()" class="text-slate-300 flex flex-col items-center gap-1"><span class="text-xl">💾</span><span class="text-[9px] font-black uppercase">Backup</span></button>
         </nav>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('chongmu_v62_db')) || {
-            pw: null, notice: "공지사항을 입력하세요!", eventImg: null, members: [], history: []
+        let db = JSON.parse(localStorage.getItem('chongmu_v93_db')) || {
+            groupName: "우리 모임 회",
+            pw: "1234",
+            notice: "공지사항을 입력해 주세요.",
+            members: [],
+            pending: [],
+            history: []
         };
-        let isAdmin = false, currentMode = 'INCOME', editingMemberId = null, chart = null;
 
-        function saveData() { localStorage.setItem('chongmu_v62_db', JSON.stringify(db)); render(); }
+        let isAdmin = false, currentMode = 'INCOME';
 
-        // 관리자 인증
+        function saveData() { localStorage.setItem('chongmu_v93_db', JSON.stringify(db)); render(); }
+
         function toggleAdmin() {
-            if (!db.pw) {
-                const newPw = prompt("초기 비밀번호를 설정하세요.");
-                if (newPw) { db.pw = newPw; saveData(); alert("설정완료! 다시 로그인하세요."); }
-                return;
-            }
-            if (isAdmin) {
-                isAdmin = false;
-                document.body.classList.remove('is-admin');
-                document.getElementById('adminBtn').innerText = "🔐 관리자 로그인";
-            } else {
-                const input = prompt("총무 비밀번호를 입력하세요.");
-                if (input === db.pw) {
-                    isAdmin = true;
-                    document.body.classList.add('is-admin');
-                    document.getElementById('adminBtn').innerText = "🔓 관리 모드 ON";
-                } else { alert("비밀번호가 틀립니다."); }
+            const input = prompt("비밀번호를 입력하세요.");
+            if(input === db.pw) {
+                isAdmin = !isAdmin;
+                document.body.classList.toggle('is-admin', isAdmin);
+                document.getElementById('adminBtn').innerHTML = isAdmin ? "🔓 관리중" : "🔐 관리자";
+                render();
             }
         }
 
-        function handleImageClick() {
-            if (isAdmin) document.getElementById('eventUpload').click();
-            else if (db.eventImg) { /* 터치 시 사라지는 기능은 v7기능이나 요청에 따라 유지 가능 */ }
-        }
-
-        function uploadImage(type) {
-            const file = document.getElementById('eventUpload').files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => { db.eventImg = e.target.result; saveData(); };
-            reader.readAsDataURL(file);
+        function editGroupName() {
+            if(!isAdmin) return;
+            const name = prompt("모임 회 이름을 입력하세요.", db.groupName);
+            if(name) { db.groupName = name; saveData(); }
         }
 
         function editNotice() {
-            const n = prompt("공지수정", db.notice);
-            if(n !== null) { db.notice = n; saveData(); }
+            const n = prompt("새 공지사항", db.notice);
+            if(n) { db.notice = n; saveData(); }
         }
-
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-slate-300', 'nav-active'));
-            document.getElementById(id + 'Tab').classList.add('active');
-            document.getElementById('n-' + id).classList.remove('text-slate-300');
-            document.getElementById('n-' + id).classList.add('nav-active');
-            if(id === 'ledger') setTimeout(() => drawChart('month'), 100);
-            render();
-        }
-
-        function drawChart(filter) {
-            const ctx = document.getElementById('balanceChart').getContext('2d');
-            if(chart) chart.destroy();
-            
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.replace('bg-slate-800', 'bg-gray-100');
-                b.classList.replace('text-white', 'text-slate-800');
-            });
-            document.getElementById('f-'+filter).classList.replace('bg-gray-100', 'bg-slate-800');
-            document.getElementById('f-'+filter).classList.add('text-white');
-
-            let filtered = [...db.history].reverse();
-            const now = new Date();
-            if(filter === 'week') filtered = filtered.filter(h => (now - new Date(h.date)) / (1000*60*60*24) <= 7);
-            else if(filter === 'year') filtered = filtered.filter(h => new Date(h.date).getFullYear() === now.getFullYear());
-            else filtered = filtered.filter(h => new Date(h.date).getMonth() === now.getMonth());
-
-            let sum = 0;
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: filtered.map(h => h.date.slice(5)),
-                    datasets: [{ data: filtered.map(h => { sum += h.amt; return sum; }), borderColor: '#ef4444', tension: 0.3, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }]
-                },
-                options: { plugins: { legend: { display: false } }, scales: { x: { display: false } } }
-            });
-        }
-
-        // 회원 기능 (기존 v6 로직 유지)
-        function openMemberModal(id = null) {
-            if(!isAdmin && id) { alert("조회만 가능합니다."); } 
-            editingMemberId = id; resetMemberFields();
-            if(id) {
-                const m = db.members.find(x => x.id === id);
-                document.getElementById('mName').value = m.name; document.getElementById('mPhone').value = m.phone;
-                document.getElementById('mHeight').value = m.height; document.getElementById('mWeight').value = m.weight; document.getElementById('mNote').value = m.note;
-                if(m.photo) { document.getElementById('mPhotoPreview').src = m.photo; document.getElementById('mPhotoPreview').classList.remove('hidden'); document.getElementById('mPhotoText').classList.add('hidden'); }
-                if(isAdmin) document.getElementById('delMemBtn').classList.remove('hidden');
-            }
-            document.getElementById('memberModal').classList.remove('hidden');
-        }
-
-        function saveMember() {
-            if(!isAdmin) return alert("관리자 권한이 없습니다.");
-            const photo = document.getElementById('mPhotoPreview').src;
-            const m = { id: editingMemberId || Date.now(), name: document.getElementById('mName').value, phone: document.getElementById('mPhone').value, height: document.getElementById('mHeight').value, weight: document.getElementById('mWeight').value, note: document.getElementById('mNote').value, photo: photo.startsWith('data') ? photo : null, totalPaid: editingMemberId ? db.members.find(x => x.id === editingMemberId).totalPaid : 0 };
-            if(!m.name) return alert("이름 필수");
-            if(editingMemberId) db.members[db.members.findIndex(x => x.id === editingMemberId)] = m;
-            else db.members.push(m);
-            saveData(); closeModal('memberModal');
-        }
-
-        function deleteMember() { if(confirm("탈퇴?") && isAdmin) { db.members = db.members.filter(x => x.id !== editingMemberId); saveData(); closeModal('memberModal'); } }
 
         function openLedgerModal(mode) {
-            if(!isAdmin) return alert("관리자만 가능합니다.");
             currentMode = mode;
-            document.getElementById('lTitle').innerText = mode === 'INCOME' ? '💰 수입 기록' : '💸 지출 기록';
-            document.getElementById('lMember').innerHTML = '<option value="">회원선택</option>' + db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-            document.getElementById('ledgerModal').classList.remove('hidden');
+            document.getElementById('lDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('lMember').innerHTML = '<option value="">회원 선택(선택)</option>' + db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+            
+            const presetArea = document.getElementById('categoryPresets');
+            if(mode === 'INCOME') {
+                presetArea.innerHTML = `
+                    <button onclick="setCat('회비')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-black">회비</button>
+                    <button onclick="setCat('찬조')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-black">찬조</button>
+                `;
+            } else {
+                presetArea.innerHTML = `<button class="bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-black">수동입력 전용</button>`;
+            }
+            document.getElementById('lCategory').value = '';
+            openModal('ledgerModal');
         }
+
+        function setCat(val) { document.getElementById('lCategory').value = val; }
 
         function saveLedger() {
             const name = document.getElementById('lMember').value;
             const cat = document.getElementById('lCategory').value;
+            const date = document.getElementById('lDate').value;
             let amt = parseInt(document.getElementById('lAmount').value);
             if(!amt || !cat) return;
             if(currentMode === 'EXPENSE') amt = -amt;
-            db.history.unshift({ id: Date.now(), name, cat, amt, date: new Date().toISOString().split('T')[0] });
+            db.history.unshift({ id: Date.now(), name, cat, amt, date });
             if(currentMode === 'INCOME' && name) {
                 const m = db.members.find(x => x.name === name);
                 if(m) m.totalPaid = (m.totalPaid || 0) + amt;
@@ -255,32 +178,74 @@
             saveData(); closeModal('ledgerModal');
         }
 
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function resetMemberFields() { ['mName','mPhone','mHeight','mWeight','mNote'].forEach(f => document.getElementById(f).value = ''); document.getElementById('mPhotoPreview').classList.add('hidden'); document.getElementById('mPhotoText').classList.remove('hidden'); }
-        function previewMemberPhoto(e) { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { document.getElementById('mPhotoPreview').src = ev.target.result; document.getElementById('mPhotoPreview').classList.remove('hidden'); document.getElementById('mPhotoText').classList.add('hidden'); }; reader.readAsDataURL(file); } }
+        function requestJoin() {
+            const name = document.getElementById('mName').value.trim();
+            const phone = document.getElementById('mPhone').value.trim();
+            if(!name || !phone) return;
+            db.pending.push({ id: Date.now(), name, phone, totalPaid: 0 });
+            saveData(); closeModal('memberModal');
+            alert("신청 완료! 총무 승인 대기중.");
+        }
+
+        function approveMember(id) {
+            const idx = db.pending.findIndex(x => x.id === id);
+            db.members.push(db.pending[idx]);
+            db.pending.splice(idx, 1);
+            saveData();
+        }
+
+        function sendKakao(name, phone) {
+            const msg = `[${db.groupName}]\n안녕하세요 ${name}님, 회비 미납 건 확인 부탁드립니다!`;
+            location.href = `sms:${phone}?body=${encodeURIComponent(msg)}`;
+        }
 
         function render() {
+            document.getElementById('groupNameDisplay').innerText = db.groupName;
             document.getElementById('noticeArea').innerText = db.notice;
-            document.getElementById('mainBalance').innerText = db.history.reduce((s, a) => s + a.amt, 0).toLocaleString() + "원";
-            if(db.eventImg) { document.getElementById('eventImg').src = db.eventImg; document.getElementById('eventImg').classList.remove('hidden'); document.getElementById('eventText').classList.add('hidden'); }
-            
-            document.getElementById('memberList').innerHTML = db.members.map(m => `
-                <div onclick="openMemberModal(${m.id})" class="p-6 bg-white rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `👤`}</div>
-                    <div class="flex-1"><h4 class="font-black text-sm">${m.name}</h4><p class="text-[10px] text-gray-400 font-bold">${m.phone || ''}</p></div>
-                    <div class="text-right text-xs font-black">${(m.totalPaid || 0).toLocaleString()}원</div>
+            const total = db.history.reduce((s, a) => s + a.amt, 0);
+            document.getElementById('mainBalance').innerText = total.toLocaleString() + "원";
+
+            document.getElementById('pendingList').innerHTML = db.pending.map(m => `
+                <div class="p-4 bg-orange-50 rounded-2xl flex justify-between items-center border border-orange-100 mb-2">
+                    <div><p class="text-sm font-black">${m.name}</p><p class="text-[10px] font-bold text-orange-400">${m.phone}</p></div>
+                    <button onclick="approveMember(${m.id})" class="bg-orange-500 text-white px-4 py-2 rounded-xl text-[10px] font-bold">승인</button>
                 </div>`).join('');
 
-            const hHtml = (d) => d.map(h => `<div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100"><div><p class="font-black text-[11px]">${h.cat}</p><p class="text-[8px] text-gray-400">${h.date}</p></div><span class="font-black text-xs ${h.amt > 0 ? 'text-blue-500' : 'text-slate-800'}">${h.amt.toLocaleString()}원</span></div>`).join('');
+            document.getElementById('memberList').innerHTML = db.members.map(m => `
+                <div class="p-5 bg-white rounded-3xl border border-slate-50 shadow-sm flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-300">${m.name[0]}</div>
+                        <div><h4 class="font-black text-sm">${m.name}</h4><p class="text-[9px] text-slate-300 font-bold">${m.phone}</p></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right"><p class="text-[9px] font-bold text-blue-500">PAID</p><p class="font-black text-sm">${(m.totalPaid || 0).toLocaleString()}원</p></div>
+                        <button onclick="sendKakao('${m.name}', '${m.phone}')" class="admin-only text-lg">💬</button>
+                    </div>
+                </div>`).join('');
+
+            const hHtml = (d) => d.map(h => `
+                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-white mb-2">
+                    <div><p class="font-black text-xs">${h.cat}</p><p class="text-[9px] text-slate-400 font-bold italic">${h.date} ${h.name ? '· '+h.name : ''}</p></div>
+                    <span class="font-black text-sm ${h.amt > 0 ? 'text-blue-600' : 'text-slate-900'}">${h.amt.toLocaleString()}원</span>
+                </div>`).join('');
             document.getElementById('mainHistory').innerHTML = hHtml(db.history.slice(0, 5));
             document.getElementById('fullHistory').innerHTML = hHtml(db.history);
         }
 
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-slate-300'));
+            document.getElementById(id + 'Tab').classList.add('active');
+            document.getElementById('n-' + id).classList.remove('text-slate-300', 'nav-active');
+            document.getElementById('n-' + id).classList.add('nav-active');
+            render();
+        }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function backupData() {
             const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `chongmu_backup.json`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `chongmu_v93_backup.json`; a.click();
         }
-
         render();
     </script>
 </body>
