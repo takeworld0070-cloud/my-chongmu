@@ -3,210 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHONGMU OMNIPOTENT v23.0</title>
+    <title>TAKEWORLD EMPEROR v25.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=Pretendard:wght@100;400;700;900&display=swap');
         
-        /* 모바일 줌 방지 및 하이엔드 UI */
-        body { font-family: 'Pretendard', sans-serif; background: #000; color: #fff; -webkit-text-size-adjust: none; overflow-x: hidden; }
-        input, select, textarea, button { font-size: 16px !important; outline: none; transition: 0.2s; }
-        input, select { background: #111 !important; border: 1px solid #222 !important; color: #fff !important; padding: 14px !important; border-radius: 12px !important; }
-        input:focus { border-color: #fbbf24 !important; background: #1a1a1a !important; }
+        :root { --gold: #EAB308; --bg: #000000; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: #fff; -webkit-text-size-adjust: none; overflow-x: hidden; letter-spacing: -0.02em; }
+        
+        /* 입력 줌 원천 봉쇄 */
+        input, select, textarea { font-size: 16px !important; background: #0a0a0a !important; border: 1px solid #1a1a1a !important; color: #fff !important; padding: 16px !important; border-radius: 14px !important; width: 100%; transition: 0.3s; }
+        input:focus { border-color: var(--gold) !important; outline: none; background: #111 !important; }
         
         .tab-content { display: none; padding-bottom: 140px; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active { display: block; animation: pureFade 0.5s ease-in-out; }
+        @keyframes pureFade { from { opacity: 0; } to { opacity: 1; } }
         
         .admin-only { display: none !important; }
         .is-admin .admin-only { display: block !important; }
         
-        .card { background: linear-gradient(145deg, #0f0f0f, #181818); border: 1px solid rgba(255,255,255,0.05); border-radius: 28px; }
-        .btn-gold { background: #fbbf24; color: #000; font-weight: 800; border-radius: 16px; }
-        .nav-btn.active { color: #fbbf24; transform: translateY(-2px); }
-        .settle-badge { font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: #888; }
+        .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 30px; backdrop-filter: blur(10px); }
+        .gold-grad { background: linear-gradient(135deg, #EAB308 0%, #B45309 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .btn-main { background: linear-gradient(135deg, #EAB308 0%, #B45309 100%); color: #000; font-weight: 900; border-radius: 18px; }
+        .nav-active { color: var(--gold); position: relative; }
+        .nav-active::after { content: ''; position: absolute; bottom: -10px; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen relative">
 
-    <header class="px-6 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-xl z-[100]">
-        <div>
-            <h1 id="groupName" onclick="editGroupName()" class="text-2xl font-black tracking-tighter cursor-pointer">MASTER LOG</h1>
-            <p class="text-[9px] text-amber-500 font-bold tracking-[0.3em] uppercase">Omnipotent v23.0</p>
+    <header class="px-8 pt-16 pb-8 sticky top-0 bg-black/90 backdrop-blur-xl z-[100]">
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-[10px] text-amber-500 font-black tracking-[0.5em] mb-1">MANAGED BY</p>
+                <h1 onclick="editGroupName()" class="text-4xl font-black tracking-tighter cursor-pointer italic">TAKEWORLD</h1>
+            </div>
+            <button onclick="toggleAdmin()" id="adminBtn" class="text-[10px] font-black px-4 py-2 rounded-full border border-white/10 bg-white/5 tracking-tighter uppercase">Access System</button>
         </div>
-        <button onclick="toggleAdmin()" id="adminBtn" class="bg-white/5 text-[10px] font-black px-5 py-2.5 rounded-full border border-white/10 tracking-widest">🔐 LOGIN</button>
     </header>
 
     <div id="content">
-        <main id="homeTab" class="tab-content active px-6 pt-6">
-            <div class="card p-10 mb-8 text-center border-amber-500/20 shadow-[0_0_50px_rgba(251,191,36,0.05)]">
-                <p class="text-[10px] text-white/30 mb-2 font-bold tracking-[0.4em]">CURRENT BALANCE</p>
-                <h2 id="homeBalance" class="text-5xl font-black text-white tracking-tighter">0원</h2>
+        <main id="homeTab" class="tab-content active px-6">
+            <div class="glass-card p-10 mb-8 mt-4 text-center">
+                <p class="text-[9px] text-white/30 mb-2 font-bold tracking-[0.4em] uppercase">Liquidity Assets</p>
+                <h2 id="homeBalance" class="text-5xl font-black tracking-tighter gold-grad">0원</h2>
             </div>
 
             <div class="grid grid-cols-3 gap-3 mb-10">
-                <div class="card p-4 text-center">
-                    <p class="text-[8px] text-white/30 font-bold mb-1 italic">WEEKLY</p>
-                    <p id="weekSettle" class="text-xs font-black text-amber-400">+0</p>
+                <div class="glass-card p-5 text-center">
+                    <p class="text-[8px] text-white/20 font-bold mb-1 uppercase">Week</p>
+                    <p id="weekSettle" class="text-xs font-black text-white">+0</p>
                 </div>
-                <div class="card p-4 text-center border-amber-500/30">
-                    <p class="text-[8px] text-white/30 font-bold mb-1 italic">MONTHLY</p>
-                    <p id="monthSettle" class="text-xs font-black text-amber-400">+0</p>
+                <div class="glass-card p-5 text-center border-amber-500/20">
+                    <p class="text-[8px] text-amber-500 font-bold mb-1 uppercase">Month</p>
+                    <p id="monthSettle" class="text-xs font-black text-amber-500">+0</p>
                 </div>
-                <div class="card p-4 text-center">
-                    <p class="text-[8px] text-white/30 font-bold mb-1 italic">YEARLY</p>
-                    <p id="yearSettle" class="text-xs font-black text-amber-400">+0</p>
+                <div class="glass-card p-5 text-center">
+                    <p class="text-[8px] text-white/20 font-bold mb-1 uppercase">Year</p>
+                    <p id="yearSettle" class="text-xs font-black text-white">+0</p>
                 </div>
             </div>
             
             <div class="mb-10">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-lg font-black">최근 트랜잭션</h3>
-                    <button onclick="switchTab('ledger')" class="text-[10px] text-white/20 font-bold underline">VIEW ALL</button>
+                <div class="flex justify-between items-center mb-6 px-2">
+                    <h3 class="text-sm font-black tracking-widest text-white/50 italic uppercase">Transaction Flow</h3>
                 </div>
-                <div id="homeHistory" class="space-y-3"></div>
+                <div id="homeHistory" class="space-y-4"></div>
             </div>
 
-            <div class="card p-6 border-l-4 border-l-amber-500">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-[10px] font-black text-amber-500 tracking-widest uppercase">Official Memo</span>
-                    <button onclick="editNotice()" class="admin-only text-[10px] text-white/20 underline">Edit</button>
-                </div>
-                <p id="noticeArea" class="text-sm font-bold text-white/70 leading-relaxed"></p>
+            <div class="glass-card p-6 border-l-4 border-amber-500">
+                <p class="text-[9px] font-black text-amber-500 tracking-widest mb-2 uppercase">Official Briefing</p>
+                <p id="noticeArea" class="text-sm font-medium text-white/70 leading-relaxed"></p>
+                <button onclick="editNotice()" class="admin-only mt-4 text-[9px] text-white/20 underline">Update Briefing</button>
             </div>
         </main>
 
-        <main id="memberTab" class="tab-content px-6 pt-8">
-            <div class="flex justify-between items-end mb-8">
-                <h3 class="text-3xl font-black">MEMBERS</h3>
-                <button onclick="openModal('joinModal')" class="bg-white text-black text-[10px] font-black px-4 py-2 rounded-xl">REGISTRATION</button>
+        <main id="memberTab" class="tab-content px-6 pt-6">
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <h3 class="text-3xl font-black italic">DATABASE</h3>
+                    <p class="text-[10px] text-white/20 font-bold mt-1 uppercase tracking-widest">Master Members List</p>
+                </div>
+                <button onclick="openModal('joinModal')" class="bg-white text-black text-[10px] font-black px-5 py-3 rounded-2xl">REGISTER</button>
             </div>
             
-            <div id="pendingArea" class="admin-only mb-12">
-                <p class="text-amber-500 text-[10px] font-black mb-4 tracking-[0.2em] px-2">● WAITING LIST</p>
+            <div id="pendingArea" class="admin-only mb-14">
                 <div id="pendingList" class="space-y-3"></div>
             </div>
             
-            <div id="memberList" class="space-y-5"></div>
+            <div id="memberList" class="space-y-6"></div>
         </main>
 
-        <main id="ledgerTab" class="tab-content px-6 pt-8">
-            <div class="card p-6 mb-8"><canvas id="mainChart" height="200"></canvas></div>
+        <main id="ledgerTab" class="tab-content px-6 pt-6">
+            <div class="glass-card p-6 mb-8 border-white/5"><canvas id="mainChart" height="200"></canvas></div>
             
             <div class="admin-only grid grid-cols-2 gap-4 mb-10">
-                <button onclick="openLedger('INCOME')" class="btn-gold py-6 shadow-xl shadow-amber-500/10">수입 기록</button>
-                <button onclick="openLedger('EXPENSE')" class="bg-white/10 text-white py-6 rounded-2xl font-black border border-white/5">지출 기록</button>
+                <button onclick="openLedger('INCOME')" class="btn-main py-6 shadow-2xl shadow-amber-500/10 uppercase italic">Credit</button>
+                <button onclick="openLedger('EXPENSE')" class="bg-white/5 text-white py-6 rounded-2xl font-black border border-white/10 uppercase italic">Debit</button>
             </div>
             
             <div id="fullHistory" class="space-y-3"></div>
         </main>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-24 bg-black/90 backdrop-blur-2xl border-t border-white/5 flex justify-around items-center px-10 z-[100]">
-        <button onclick="switchTab('home')" id="btn-home" class="nav-btn active flex flex-col items-center gap-1.5"><span class="text-2xl">🏠</span><span class="text-[9px] font-black">HOME</span></button>
-        <button onclick="switchTab('member')" id="btn-member" class="nav-btn flex flex-col items-center gap-1.5 text-white/20"><span class="text-2xl">👥</span><span class="text-[9px] font-black">MEMBER</span></button>
-        <button onclick="switchTab('ledger')" id="btn-ledger" class="nav-btn flex flex-col items-center gap-1.5 text-white/20"><span class="text-2xl">📊</span><span class="text-[9px] font-black">LEDGER</span></button>
-        <button onclick="exportData()" class="flex flex-col items-center gap-1.5 text-white/20"><span class="text-2xl">💾</span><span class="text-[9px] font-black">BACKUP</span></button>
+    <footer class="px-8 pb-32 pt-10 text-center opacity-20">
+        <p class="text-[10px] font-black tracking-[0.3em] mb-1">SYSTEM ADMINISTRATOR: TAKEWORLD</p>
+        <p class="text-[9px] font-bold italic tracking-tighter">takeworld0070@gmail.com</p>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-24 bg-black/80 backdrop-blur-2xl flex justify-around items-center px-10 z-[100] border-t border-white/5">
+        <button onclick="switchTab('home')" id="btn-home" class="nav-btn nav-active flex flex-col items-center gap-1"><span class="text-xl">🏛️</span><span class="text-[8px] font-black uppercase">Home</span></button>
+        <button onclick="switchTab('member')" id="btn-member" class="nav-btn text-white/20 flex flex-col items-center gap-1"><span class="text-xl">👥</span><span class="text-[8px] font-black uppercase">Member</span></button>
+        <button onclick="switchTab('ledger')" id="btn-ledger" class="nav-btn text-white/20 flex flex-col items-center gap-1"><span class="text-xl">📊</span><span class="text-[8px] font-black uppercase">Ledger</span></button>
+        <button onclick="exportData()" class="text-white/20 flex flex-col items-center gap-1"><span class="text-xl">💾</span><span class="text-[8px] font-black uppercase">Backup</span></button>
     </nav>
 
-    <div id="editMemberModal" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-end">
-        <div class="w-full p-10 max-h-[90vh] overflow-y-auto bg-[#0a0a0a] rounded-t-[3rem] border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,1)]">
+    <div id="editMemberModal" class="fixed inset-0 bg-black/98 z-[200] hidden flex items-end">
+        <div class="w-full p-10 max-h-[95vh] overflow-y-auto bg-[#050505] rounded-t-[40px] border-t border-amber-500/30">
             <div class="flex justify-between items-center mb-10">
-                <h3 class="text-xl font-black text-white">PROFILE MASTER</h3>
-                <button onclick="sendSmsFromModal()" class="bg-green-600 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black shadow-lg">💬 미납 독촉</button>
+                <h3 class="text-xl font-black italic gold-grad">MEMBER CONTROL</h3>
+                <button onclick="sendSmsFromModal()" class="bg-amber-500/10 text-amber-500 px-5 py-2 rounded-xl text-[10px] font-black border border-amber-500/20 uppercase">Send SMS</button>
             </div>
             
             <div class="space-y-6">
-                <div class="flex justify-center mb-8">
+                <div class="flex justify-center mb-10">
                     <div class="relative">
-                        <img id="emPhotoPrev" class="w-32 h-32 rounded-[2.5rem] object-cover border-2 border-white/5 shadow-2xl">
+                        <img id="emPhotoPrev" class="w-32 h-32 rounded-[40px] object-cover border-2 border-amber-500/20 shadow-2xl">
                         <input type="file" id="emPhotoFile" class="hidden" accept="image/*" onchange="previewImage(this, 'emPhotoPrev')">
-                        <button onclick="document.getElementById('emPhotoFile').click()" class="absolute -bottom-2 -right-2 btn-gold p-3 rounded-2xl shadow-xl">📸</button>
+                        <button onclick="document.getElementById('emPhotoFile').click()" class="absolute -bottom-2 -right-2 btn-main p-3 rounded-2xl shadow-xl">📸</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <input id="emName" type="text" placeholder="이름">
                     <input id="emPhone" type="tel" placeholder="연락처">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="text-[10px] text-white/30 ml-1 mb-1 block">생년월일</label><input id="emBirth" type="date"></div>
-                    <div><label class="text-[10px] text-white/30 ml-1 mb-1 block">키 (cm)</label><input id="emHeight" type="number"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="emBirth" type="date">
+                    <input id="emHeight" type="number" placeholder="키(cm)">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="text-[10px] text-white/30 ml-1 mb-1 block">신발 (mm)</label><input id="emShoe" type="number"></div>
-                    <div><label class="text-[10px] text-white/30 ml-1 mb-1 block">옷 사이즈</label><input id="emCloth" type="text"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="emShoe" type="number" placeholder="신발(mm)">
+                    <input id="emCloth" type="text" placeholder="옷 사이즈">
                 </div>
-                <div><label class="text-[10px] text-white/30 ml-1 mb-1 block">누적 납부액</label><input id="emPaid" type="number" class="!text-amber-500 font-black text-xl"></div>
+                <div class="glass-card p-6">
+                    <label class="text-[9px] text-amber-500 font-black mb-2 block uppercase tracking-widest">Total Asset Contribution</label>
+                    <input id="emPaid" type="number" class="!bg-transparent !border-none !p-0 text-4xl font-black italic">
+                </div>
             </div>
 
             <div class="flex gap-4 mt-12 pb-10">
-                <button onclick="deleteMember()" class="flex-1 py-5 bg-red-900/20 text-red-500 font-bold rounded-2xl border border-red-500/20">영구 제명</button>
-                <button onclick="saveMemberEdit()" class="flex-[2] py-5 btn-gold shadow-2xl">정보 업데이트</button>
+                <button onclick="deleteMember()" class="flex-1 py-5 bg-red-900/10 text-red-500 font-bold rounded-2xl border border-red-500/20 text-xs uppercase">Expel</button>
+                <button onclick="saveMemberEdit()" class="flex-[2] py-5 btn-main shadow-2xl uppercase">Update Data</button>
             </div>
         </div>
     </div>
 
-    <div id="ledgerModal" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-end">
-        <div class="w-full p-10 bg-[#0a0a0a] rounded-t-[3rem] border-t border-white/10">
-            <h3 class="text-center font-black text-amber-500 mb-10 uppercase tracking-[0.4em] italic">Transaction</h3>
+    <div id="ledgerModal" class="fixed inset-0 bg-black/98 z-[200] hidden flex items-end">
+        <div class="w-full p-10 bg-[#050505] rounded-t-[40px] border-t border-amber-500/30">
+            <h3 class="text-center font-black gold-grad mb-10 uppercase tracking-[0.5em] italic">Authority Entry</h3>
             <div class="space-y-4 mb-10">
                 <input id="lDate" type="date">
                 <select id="lMember"></select>
-                <div id="catPresets" class="flex gap-2"></div>
-                <input id="lCategory" type="text" placeholder="상세 내역">
-                <input id="lAmount" type="number" placeholder="0" class="text-5xl font-black text-center border-none !bg-transparent text-white">
+                <div id="catPresets" class="flex gap-2 overflow-x-auto pb-2"></div>
+                <input id="lCategory" type="text" placeholder="항목 내용">
+                <input id="lAmount" type="number" placeholder="0" class="text-5xl font-black text-center border-none !bg-transparent text-white tracking-tighter">
             </div>
             <div class="flex gap-4" id="ledgerBtnArea"></div>
         </div>
     </div>
 
-    <div id="joinModal" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-end">
-        <div class="w-full p-10 max-h-[95vh] overflow-y-auto bg-[#0a0a0a] rounded-t-[3rem] border-t border-white/10">
-            <h3 class="text-2xl font-black mb-10 text-center">NEW MEMBER</h3>
+    <div id="joinModal" class="fixed inset-0 bg-black/98 z-[200] hidden flex items-end">
+        <div class="w-full p-10 max-h-[95vh] overflow-y-auto bg-[#050505] rounded-t-[40px] border-t border-white/10">
+            <h3 class="text-2xl font-black mb-10 text-center tracking-tighter uppercase italic">Membership Request</h3>
             <div class="space-y-5">
                 <div class="flex flex-col items-center mb-8">
-                    <img id="mPhotoPrev" src="https://via.placeholder.com/150" class="w-24 h-24 rounded-[2rem] object-cover border border-white/10 shadow-2xl mb-4">
+                    <img id="mPhotoPrev" src="https://via.placeholder.com/150" class="w-24 h-24 rounded-[30px] object-cover border border-white/10 shadow-2xl mb-4">
                     <input type="file" id="mPhotoFile" class="hidden" onchange="previewImage(this, 'mPhotoPrev')">
-                    <button onclick="document.getElementById('mPhotoFile').click()" class="text-xs font-black text-amber-500 underline underline-offset-4">사진 촬영 및 선택</button>
+                    <button onclick="document.getElementById('mPhotoFile').click()" class="text-xs font-black text-amber-500 underline uppercase tracking-widest">Select Photo</button>
                 </div>
                 <input id="mName" type="text" placeholder="성함 (실명)">
                 <input id="mPhone" type="tel" placeholder="연락처">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <input id="mBirth" type="date">
                     <input id="mHeight" type="number" placeholder="키(cm)">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <input id="mShoe" type="number" placeholder="신발(mm)">
                     <input id="mCloth" type="text" placeholder="옷 사이즈">
                 </div>
             </div>
-            <button onclick="submitJoin()" class="w-full py-6 btn-gold shadow-2xl mt-12">가입 신청 완료</button>
-            <button onclick="closeModal('joinModal')" class="w-full py-5 text-white/20 font-bold mt-2">CLOSE</button>
+            <button onclick="submitJoin()" class="w-full py-6 btn-main shadow-2xl mt-12 uppercase italic">Apply Now</button>
+            <button onclick="closeModal('joinModal')" class="w-full py-5 text-white/20 font-bold mt-2 uppercase">Cancel</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('CHONGMU_OMNI_V23')) || {
-            groupName: "TOP ELITE", notice: "관리자 모드에서 주요 공지를 작성하십시오.", pw: "1234",
+        let db = JSON.parse(localStorage.getItem('TAKEWORLD_EMPEROR_V25')) || {
+            groupName: "TAKEWORLD", notice: "TAKEWORLD 시스템에 오신 것을 환영합니다.", pw: "1234",
             members: [], pending: [], history: []
         };
         let isAdmin = false, activeMode = 'INCOME', chart = null, currentEditId = null, currentMemberId = null, tempPhoto = "";
 
-        const sync = () => { localStorage.setItem('CHONGMU_OMNI_V23', JSON.stringify(db)); render(); };
+        const sync = () => { localStorage.setItem('TAKEWORLD_EMPEROR_V25', JSON.stringify(db)); render(); };
 
         const toggleAdmin = () => {
-            const p = prompt("ACCESS CODE");
+            const p = prompt("AUTHORITY CODE");
             if(p === db.pw) {
                 isAdmin = !isAdmin;
                 document.body.classList.toggle('is-admin', isAdmin);
-                document.getElementById('adminBtn').innerText = isAdmin ? "🔓 UNLOCKED" : "🔐 LOGIN";
+                document.getElementById('adminBtn').innerText = isAdmin ? "🔓 UNLOCKED" : "🔐 Access System";
                 render();
             }
         };
 
-        const editGroupName = () => { if(isAdmin) { const n = prompt("모임명", db.groupName); if(n) { db.groupName = n; sync(); } } };
-        const editNotice = () => { if(isAdmin) { const n = prompt("공지사항", db.notice); if(n) { db.notice = n; sync(); } } };
+        const editGroupName = () => { if(isAdmin) { const n = prompt("Change System Brand", db.groupName); if(n) { db.groupName = n; sync(); } } };
+        const editNotice = () => { if(isAdmin) { const n = prompt("Briefing Update", db.notice); if(n) { db.notice = n; sync(); } } };
 
         const previewImage = (input, prevId) => {
             const reader = new FileReader();
@@ -214,19 +229,12 @@
             reader.readAsDataURL(input.files[0]);
         };
 
-        // [결산 엔진] 주간/월간/연간 계산
         const getSettlement = () => {
             const now = new Date();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            const weekStart = new Date(now - oneWeek);
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            const yearStart = new Date(now.getFullYear(), 0, 1);
-
             const calc = (start) => db.history.filter(h => new Date(h.date) >= start).reduce((s, a) => s + a.amt, 0);
-
-            document.getElementById('weekSettle').innerText = (calc(weekStart) >= 0 ? '+' : '') + calc(weekStart).toLocaleString();
-            document.getElementById('monthSettle').innerText = (calc(monthStart) >= 0 ? '+' : '') + calc(monthStart).toLocaleString();
-            document.getElementById('yearSettle').innerText = (calc(yearStart) >= 0 ? '+' : '') + calc(yearStart).toLocaleString();
+            document.getElementById('weekSettle').innerText = (calc(new Date(now - 7 * 24 * 60 * 60 * 1000)) >= 0 ? '+' : '') + calc(new Date(now - 7 * 24 * 60 * 60 * 1000)).toLocaleString();
+            document.getElementById('monthSettle').innerText = (calc(new Date(now.getFullYear(), now.getMonth(), 1)) >= 0 ? '+' : '') + calc(new Date(now.getFullYear(), now.getMonth(), 1)).toLocaleString();
+            document.getElementById('yearSettle').innerText = (calc(new Date(now.getFullYear(), 0, 1)) >= 0 ? '+' : '') + calc(new Date(now.getFullYear(), 0, 1)).toLocaleString();
         };
 
         const openEditMember = (id) => {
@@ -254,7 +262,7 @@
         };
 
         const deleteMember = () => {
-            if(confirm("이 회원을 영구 삭제(제명)하시겠습니까? 관련 장부 기록은 유지되지만 명부에서는 즉시 삭제됩니다.")) {
+            if(confirm("이 회원을 TAKEWORLD 시스템에서 영구 추방하시겠습니까?")) {
                 db.members = db.members.filter(x => x.id !== currentMemberId);
                 sync(); closeModal('editMemberModal');
             }
@@ -262,16 +270,16 @@
 
         const sendSmsFromModal = () => {
             const m = db.members.find(x => x.id === currentMemberId);
-            const msg = `[${db.groupName}] 안녕하세요 총무입니다. ${m.name}님, 회비 미납 건에 대해 확인 부탁드립니다. (현재 누적 납부액: ${m.totalPaid.toLocaleString()}원)`;
+            const msg = `[${db.groupName}] 안녕하세요 관리자입니다. ${m.name}님, 회비 미납 건 확인 부탁드립니다. (현재 누적 납부액: ${m.totalPaid.toLocaleString()}원)`;
             location.href = `sms:${m.phone}?body=${encodeURIComponent(msg)}`;
         };
 
         const openLedger = (mode, editId = null) => {
             activeMode = mode; currentEditId = editId;
             const mSelect = document.getElementById('lMember');
-            mSelect.innerHTML = '<option value="">미지정</option>' + db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-            const presets = document.getElementById('catPresets');
+            mSelect.innerHTML = '<option value="">익명/공통</option>' + db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
             const btnArea = document.getElementById('ledgerBtnArea');
+            const presets = document.getElementById('catPresets');
 
             if(editId) {
                 const h = db.history.find(x => x.id === editId);
@@ -279,13 +287,13 @@
                 mSelect.value = h.name || "";
                 document.getElementById('lCategory').value = h.cat;
                 document.getElementById('lAmount').value = Math.abs(h.amt);
-                btnArea.innerHTML = `<button onclick="deleteRecord()" class="flex-1 py-5 bg-red-900/30 text-red-500 font-bold rounded-2xl">DELETE</button><button onclick="saveRecord()" class="flex-[2] btn-gold py-5">UPDATE</button>`;
+                btnArea.innerHTML = `<button onclick="deleteRecord()" class="flex-1 py-5 bg-red-900/10 text-red-500 font-bold rounded-2xl border border-red-500/20">REMOVE</button><button onclick="saveRecord()" class="flex-[2] btn-main py-5 italic uppercase">Confirm Edit</button>`;
             } else {
                 document.getElementById('lDate').value = new Date().toISOString().split('T')[0];
                 document.getElementById('lCategory').value = ''; document.getElementById('lAmount').value = '';
-                btnArea.innerHTML = `<button onclick="closeModal('ledgerModal')" class="flex-1 py-5 bg-white/5 font-bold rounded-2xl text-white/20">CANCEL</button><button onclick="saveRecord()" class="flex-[2] btn-gold py-5 shadow-2xl">SAVE</button>`;
+                btnArea.innerHTML = `<button onclick="closeModal('ledgerModal')" class="flex-1 py-5 bg-white/5 font-bold rounded-2xl text-white/20">BACK</button><button onclick="saveRecord()" class="flex-[2] btn-main py-5 italic uppercase">Record Now</button>`;
             }
-            presets.innerHTML = mode === 'INCOME' ? `<button onclick="setCat('정기회비')" class="bg-amber-500 text-black px-4 py-2 rounded-xl text-[10px] font-black">#정기회비</button><button onclick="setCat('찬조금')" class="bg-amber-500 text-black px-4 py-2 rounded-xl text-[10px] font-black">#찬조금</button>` : '';
+            presets.innerHTML = mode === 'INCOME' ? `<button onclick="setCat('정기회비')" class="bg-amber-500/10 text-amber-500 px-5 py-2 rounded-xl text-[10px] font-black border border-amber-500/20">#REGULAR</button><button onclick="setCat('찬조금')" class="bg-amber-500/10 text-amber-500 px-5 py-2 rounded-xl text-[10px] font-black border border-amber-500/20">#SPECIAL</button>` : '';
             openModal('ledgerModal');
         };
 
@@ -301,42 +309,44 @@
             sync(); closeModal('ledgerModal');
         };
 
-        const deleteRecord = () => { if(confirm("이 내역을 영구 삭제하시겠습니까?")) { db.history = db.history.filter(x => x.id !== currentEditId); sync(); closeModal('ledgerModal'); } };
+        const deleteRecord = () => { if(confirm("내역을 영구 파기하시겠습니까?")) { db.history = db.history.filter(x => x.id !== currentEditId); sync(); closeModal('ledgerModal'); } };
 
         const render = () => {
-            document.getElementById('groupName').innerText = db.groupName;
             document.getElementById('noticeArea').innerText = db.notice;
             const balance = db.history.reduce((s, a) => s + a.amt, 0);
             document.getElementById('homeBalance').innerText = balance.toLocaleString() + "원";
             getSettlement();
 
             document.getElementById('pendingList').innerHTML = db.pending.map(m => `
-                <div class="card p-4 flex justify-between items-center border-amber-500/20">
-                    <div class="flex items-center gap-4"><img src="${m.photo || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-[1rem] object-cover"><div><p class="text-sm font-black">${m.name}</p><p class="text-[9px] text-white/30">${m.phone}</p></div></div>
-                    <button onclick="approve(${m.id})" class="btn-gold px-5 py-2.5 rounded-xl text-[10px] font-black italic">CONFIRM</button>
+                <div class="glass-card p-5 flex justify-between items-center border-amber-500/20">
+                    <div class="flex items-center gap-4"><img src="${m.photo || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-2xl object-cover"><div><p class="text-sm font-black">${m.name}</p><p class="text-[9px] text-white/30">${m.phone}</p></div></div>
+                    <button onclick="approve(${m.id})" class="btn-main px-5 py-2 rounded-xl text-[10px] font-black shadow-lg">APPROVE</button>
                 </div>`).join('');
 
             document.getElementById('memberList').innerHTML = db.members.map(m => `
-                <div onclick="openEditMember(${m.id})" class="card p-6 shadow-2xl transition-transform active:scale-[0.98]">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center gap-5">
-                            <img src="${m.photo || 'https://via.placeholder.com/150'}" class="w-20 h-20 rounded-[1.5rem] object-cover border border-white/5 shadow-2xl">
-                            <div><h4 class="font-black text-xl tracking-tighter">${m.name}</h4><p class="text-[10px] text-white/20 font-bold mt-1 tracking-tight">${m.phone}</p></div>
+                <div onclick="openEditMember(${m.id})" class="glass-card p-8 transition-transform active:scale-[0.97]">
+                    <div class="flex justify-between items-start mb-8">
+                        <div class="flex items-center gap-6">
+                            <img src="${m.photo || 'https://via.placeholder.com/150'}" class="w-20 h-20 rounded-[35px] object-cover border border-white/5 shadow-2xl">
+                            <div><h4 class="font-black text-2xl tracking-tighter italic">${m.name}</h4><p class="text-[10px] text-white/20 font-bold mt-1 tracking-widest uppercase">${m.phone}</p></div>
                         </div>
-                        <div class="text-right"><p class="text-[8px] font-black text-amber-500 uppercase italic mb-1">Cumulative</p><p class="font-black text-lg tracking-tight">${(m.totalPaid || 0).toLocaleString()}원</p></div>
+                        <div class="text-right">
+                            <p class="text-[8px] font-black text-amber-500 uppercase tracking-widest mb-1 italic">Asset Balance</p>
+                            <p class="font-black text-xl italic">${(m.totalPaid || 0).toLocaleString()}원</p>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-3 bg-black/40 p-4 rounded-2xl text-[10px] font-black border border-white/5">
-                        <div class="text-center border-r border-white/5"><p class="text-[7px] text-white/20 mb-1">BIRTH</p>${m.birth ? m.birth.slice(5) : '-'}</div>
-                        <div class="text-center border-r border-white/5"><p class="text-[7px] text-white/20 mb-1">HEIGHT</p>${m.height || '-'}</div>
-                        <div class="text-center border-r border-white/5"><p class="text-[7px] text-white/20 mb-1">SHOE</p>${m.shoe || '-'}</div>
-                        <div class="text-center"><p class="text-[7px] text-white/20 mb-1">SIZE</p>${m.cloth || '-'}</div>
+                    <div class="grid grid-cols-4 gap-3 bg-black/40 p-5 rounded-[25px] text-[10px] font-black border border-white/5 shadow-inner">
+                        <div class="text-center"><p class="text-[7px] text-white/20 mb-2 font-black uppercase">Birth</p>${m.birth ? m.birth.slice(5) : '-'}</div>
+                        <div class="text-center border-l border-white/5"><p class="text-[7px] text-white/20 mb-2 font-black uppercase">Ht</p>${m.height || '-'}</div>
+                        <div class="text-center border-l border-white/5"><p class="text-[7px] text-white/20 mb-2 font-black uppercase">Shoe</p>${m.shoe || '-'}</div>
+                        <div class="text-center border-l border-white/5"><p class="text-[7px] text-white/20 mb-2 font-black uppercase">Size</p>${m.cloth || '-'}</div>
                     </div>
                 </div>`).join('');
 
             const hGen = (items) => items.map(h => `
-                <div onclick="${isAdmin ? `openLedger('${h.amt > 0 ? 'INCOME' : 'EXPENSE'}', ${h.id})` : ''}" class="flex justify-between items-center p-5 card border-white/5 transition-all active:scale-95">
-                    <div><p class="font-bold text-sm tracking-tight">${h.cat} ${h.name ? `<span class="text-white/20 text-[10px] ml-1">| ${h.name}</span>` : ''}</p><p class="text-[9px] text-white/10 font-bold italic mt-1">${h.date}</p></div>
-                    <span class="font-black text-base ${h.amt > 0 ? 'text-amber-400' : 'text-white'}">${h.amt.toLocaleString()}원</span>
+                <div onclick="${isAdmin ? `openLedger('${h.amt > 0 ? 'INCOME' : 'EXPENSE'}', ${h.id})` : ''}" class="flex justify-between items-center p-6 glass-card border-white/5">
+                    <div><p class="font-bold text-sm tracking-tighter uppercase italic">${h.cat} <span class="text-white/20 text-[10px] ml-1 font-normal">/ ${h.name || 'Global'}</span></p><p class="text-[8px] text-white/10 font-bold italic mt-1">${h.date}</p></div>
+                    <span class="font-black text-base italic ${h.amt > 0 ? 'text-amber-500' : 'text-white'}">${h.amt.toLocaleString()}원</span>
                 </div>`).join('');
             document.getElementById('homeHistory').innerHTML = hGen(db.history.slice(0, 5));
             document.getElementById('fullHistory').innerHTML = hGen(db.history);
@@ -347,14 +357,14 @@
             const ctx = document.getElementById('mainChart').getContext('2d');
             if(chart) chart.destroy();
             let b = 0; let d = [...db.history].reverse(); let p = d.map(h => { b += h.amt; return b; });
-            chart = new Chart(ctx, { type: 'line', data: { labels: d.map(h => h.date.slice(5)), datasets: [{ data: p, borderColor: '#fbbf24', borderWidth: 4, tension: 0.4, pointRadius: 0, fill: true, backgroundColor: 'rgba(251, 191, 36, 0.03)' }] }, options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 9, weight: '800' } } } } } });
+            chart = new Chart(ctx, { type: 'line', data: { labels: d.map(h => h.date.slice(5)), datasets: [{ data: p, borderColor: '#EAB308', borderWidth: 4, tension: 0.4, pointRadius: 0, fill: true, backgroundColor: 'rgba(234, 179, 8, 0.03)' }] }, options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9, weight: '900' } } } } } });
         };
 
         const switchTab = (t) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-white/20'); });
+            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('nav-active'); b.classList.add('text-white/20'); });
             document.getElementById(t + 'Tab').classList.add('active');
-            document.getElementById('btn-' + t).classList.add('active');
+            document.getElementById('btn-' + t).classList.add('nav-active');
             document.getElementById('btn-' + t).classList.remove('text-white/20');
             render();
         };
@@ -364,12 +374,12 @@
         
         const submitJoin = () => {
             const m = { id: Date.now(), name: document.getElementById('mName').value.trim(), phone: document.getElementById('mPhone').value.trim(), birth: document.getElementById('mBirth').value, height: document.getElementById('mHeight').value, shoe: document.getElementById('mShoe').value, cloth: document.getElementById('mCloth').value, photo: tempPhoto, totalPaid: 0 };
-            if(!m.name || !m.phone) return alert("필수 정보를 입력하십시오.");
-            db.pending.push(m); sync(); closeModal('joinModal'); alert("가입 신청이 정상적으로 접수되었습니다."); tempPhoto = "";
+            if(!m.name || !m.phone) return alert("필수 정보를 누락하였습니다.");
+            db.pending.push(m); sync(); closeModal('joinModal'); alert("신청이 TAKEWORLD 시스템으로 송신되었습니다."); tempPhoto = "";
         };
 
         const approve = (id) => { const i = db.pending.findIndex(x => x.id === id); db.members.push(db.pending[i]); db.pending.splice(i, 1); sync(); };
-        const exportData = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'application/json'})); a.download='chongmu_master_backup.json'; a.click(); };
+        const exportData = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'application/json'})); a.download='takeworld_emperor_backup.json'; a.click(); };
 
         render();
     </script>
