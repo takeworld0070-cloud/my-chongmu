@@ -3,355 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHONGMU VISION v6.1</title>
+    <title>CHONGMU VISION v7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;900&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f3f7; user-select: none; color: #2d3436; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; user-select: none; color: #1e293b; margin: 0; }
         .tab-content { display: none; min-height: 100vh; padding-bottom: 120px; animation: fadeIn 0.3s ease-out; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-active { color: #ef4444 !important; font-weight: 900; }
         .modal-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .event-photo { transition: opacity 0.5s ease-out; opacity: 1; }
-        .event-photo.hidden { opacity: 0; pointer-events: none; }
+        input, select, textarea { font-size: 16px !important; }
+        #eventOverlay { transition: opacity 0.3s ease; }
     </style>
 </head>
 <body>
-
-    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative">
+    <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative overflow-x-hidden" onclick="closeEventOverlay(event)">
         
-        <main id="homeTab" class="tab-content active px-6 pt-10">
-            <h1 class="text-2xl font-black italic mb-6 text-red-600">CHONGMU VISION ⚽</h1>
-            
-            <div class="bg-red-50 p-6 rounded-[2rem] border border-red-100 mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-red-600">📢 공지사항</h3>
-                    <button onclick="editNotice()" class="text-[10px] font-bold bg-white px-2 py-1 rounded-full shadow-sm">수정</button>
-                </div>
-                <p id="noticeArea" class="text-sm font-medium leading-relaxed text-slate-700 whitespace-pre-wrap"></p>
-            </div>
-
-            <div class="relative w-full h-48 bg-gray-100 rounded-[2rem] overflow-hidden mb-8 shadow-md">
-                <input type="file" id="emblemUpload" accept="image/*" class="hidden" onchange="uploadImage('emblem')">
-                <div id="emblemArea" class="absolute inset-0 flex items-center justify-center cursor-pointer" onclick="document.getElementById('emblemUpload').click()">
-                    <span id="emblemText" class="text-gray-400 font-bold text-sm">모임 엠블럼 업로드</span>
-                    <img id="emblemImg" src="" class="absolute inset-0 w-full h-full object-cover hidden">
-                </div>
-
-                <input type="file" id="eventUpload" accept="image/*" class="hidden" onchange="uploadImage('event')">
-                <div id="eventPhotoArea" class="absolute inset-0 flex items-center justify-center text-white bg-black/60 cursor-pointer event-photo hidden" onclick="hideEventPhoto()">
-                    <span class="z-10 font-bold">터치하면 사라집니다</span>
-                    <img id="eventPhotoImg" src="" class="absolute inset-0 w-full h-full object-cover">
-                    <button class="absolute top-4 right-4 text-white text-[10px] bg-black/50 px-2 py-1 rounded-full" onclick="event.stopPropagation(); document.getElementById('eventUpload').click()">교체</button>
+        <main id="homeTab" class="tab-content active px-6 pt-8 flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-6">
+                <h1 class="text-xl font-black italic text-red-600">CHONGMU v7.0</h1>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('eventUpload').click()" class="text-[10px] bg-slate-100 px-3 py-1 rounded-full font-bold">📸 사진등록(총무)</button>
+                    <input type="file" id="eventUpload" class="hidden" accept="image/*" onchange="uploadImage('eventPhoto')">
                 </div>
             </div>
 
-            <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl mb-10">
-                <p class="text-[10px] font-bold opacity-50 mb-1 tracking-widest uppercase">Total Balance</p>
-                <h2 id="mainBalance" class="text-4xl font-black italic">0원</h2>
+            <div class="w-full bg-slate-900 p-8 rounded-[3rem] text-center text-white shadow-2xl mb-8 mt-4">
+                <p class="text-[10px] font-bold opacity-50 mb-2 tracking-[0.2em] uppercase">Current Total Balance</p>
+                <h2 id="mainBalance" class="text-4xl font-black tracking-tighter">0원</h2>
             </div>
 
-            <h3 class="font-black mb-4">최근 내역</h3>
-            <div id="mainHistory" class="space-y-3"></div>
+            <div class="w-full max-w-sm mb-8">
+                <div class="flex justify-between items-end mb-4 px-2">
+                    <h3 class="font-black text-lg">최근 내역</h3>
+                    <span class="text-[10px] text-gray-400">최신 5건</span>
+                </div>
+                <div id="mainHistory" class="space-y-3"></div>
+            </div>
+
+            <div class="w-full bg-red-50 p-6 rounded-[2rem] border border-red-100 mb-8 text-center">
+                <p id="noticeArea" class="text-sm font-bold text-red-600 italic"></p>
+            </div>
         </main>
 
-        <main id="memberTab" class="tab-content px-6 pt-10">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black">회원 관리 👥</h2>
-                <button onclick="openMemberModal()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black">+ 회원추가</button>
-            </div>
-            <div id="memberList" class="space-y-4"></div>
-        </main>
+        <div id="eventOverlay" class="fixed inset-0 bg-black/90 z-[200] hidden flex items-center justify-center p-6">
+            <img id="eventFullImg" src="" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl">
+            <p class="absolute bottom-10 text-white/50 text-xs font-bold">이미지 외 영역을 터치하면 닫힙니다</p>
+        </div>
 
         <main id="ledgerTab" class="tab-content px-6 pt-10">
-            <h2 class="text-2xl font-black mb-6">장부 기록 📝</h2>
-            <div class="grid grid-cols-2 gap-3 mb-8">
-                <button onclick="openLedgerModal('INCOME')" class="bg-blue-500 text-white py-6 rounded-[2rem] font-black">💰 수입 입력</button>
-                <button onclick="openLedgerModal('EXPENSE')" class="bg-slate-800 text-white py-6 rounded-[2rem] font-black">💸 지출 입력</button>
+            <h2 class="text-2xl font-black mb-6">장부 시각화 📊</h2>
+            
+            <div class="bg-white p-5 rounded-[2.5rem] shadow-xl border border-gray-100 mb-8">
+                <div class="flex justify-center gap-2 mb-6">
+                    <button onclick="updateChartFilter('week')" id="btn-week" class="text-[10px] px-4 py-2 rounded-full bg-slate-100 font-bold">주간</button>
+                    <button onclick="updateChartFilter('month')" id="btn-month" class="text-[10px] px-4 py-2 rounded-full bg-slate-100 font-bold">월간</button>
+                    <button onclick="updateChartFilter('year')" id="btn-year" class="text-[10px] px-4 py-2 rounded-full bg-slate-100 font-bold">연간</button>
+                </div>
+                <canvas id="balanceChart" height="220"></canvas>
             </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-md mb-8">
-                <canvas id="balanceChart"></canvas>
+
+            <div class="flex gap-2 mb-8">
+                <button onclick="openLedgerModal('INCOME')" class="flex-1 bg-blue-600 text-white py-5 rounded-3xl font-black text-sm shadow-lg">수입 입력</button>
+                <button onclick="openLedgerModal('EXPENSE')" class="flex-1 bg-slate-800 text-white py-5 rounded-3xl font-black text-sm shadow-lg">지출 입력</button>
             </div>
             <div id="fullHistory" class="space-y-3"></div>
         </main>
 
+        <main id="memberTab" class="tab-content px-6 pt-10">
+            <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black">회원 정보 👥</h2><button onclick="openMemberModal()" class="bg-red-500 text-white px-5 py-2 rounded-2xl text-xs font-black shadow-lg">+ 신규등록</button></div>
+            <div id="memberList" class="space-y-4"></div>
+        </main>
+
         <div id="memberModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
-            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 h-[90vh] overflow-y-auto modal-up">
-                <h3 id="memberModalTitle" class="text-xl font-black mb-6">회원 정보</h3>
-                <div class="space-y-4 mb-8">
-                    <div class="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4 overflow-hidden flex items-center justify-center cursor-pointer" onclick="document.getElementById('mPhotoUpload').click()">
-                        <img id="mPhotoPreview" src="" class="w-full h-full object-cover hidden">
-                        <span id="mPhotoText" class="text-gray-400 text-xs text-center">사진<br>등록</span>
-                    </div>
-                    <input type="file" id="mPhotoUpload" class="hidden" onchange="previewMemberPhoto(event)">
-                    <input id="mName" type="text" placeholder="이름" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input id="mAge" type="number" placeholder="나이" class="p-4 bg-gray-100 rounded-xl outline-none">
-                        <input id="mBirth" type="text" placeholder="생년월일(8자리)" class="p-4 bg-gray-100 rounded-xl outline-none">
-                    </div>
-                    <input id="mPhone" type="tel" placeholder="전화번호" class="w-full p-4 bg-gray-100 rounded-xl outline-none">
-                    <input id="mAddress" type="text" placeholder="주소" class="w-full p-4 bg-gray-100 rounded-xl outline-none">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input id="mHeight" type="number" placeholder="키(cm)" class="p-4 bg-gray-100 rounded-xl outline-none">
-                        <input id="mWeight" type="number" placeholder="몸무게(kg)" class="p-4 bg-gray-100 rounded-xl outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input id="mShoes" type="number" placeholder="신발 사이즈" class="p-4 bg-gray-100 rounded-xl outline-none">
-                        <input id="mClothes" type="text" placeholder="옷 사이즈" class="p-4 bg-gray-100 rounded-xl outline-none">
-                    </div>
-                    <textarea id="mNote" placeholder="비고" class="w-full p-4 bg-gray-100 rounded-xl h-20 outline-none"></textarea>
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 h-[85vh] overflow-y-auto modal-up">
+                <div class="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-6 overflow-hidden flex items-center justify-center cursor-pointer" onclick="document.getElementById('mPhotoUpload').click()">
+                    <img id="mPhotoPreview" src="" class="w-full h-full object-cover hidden"><span id="mPhotoText" class="text-gray-400 text-xs font-bold">사진 등록</span>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="deleteMember()" id="delMemBtn" class="flex-1 py-4 bg-red-100 text-red-500 font-bold rounded-2xl hidden">탈퇴</button>
+                <input type="file" id="mPhotoUpload" class="hidden" onchange="previewMemberPhoto(event)">
+                <div class="space-y-3">
+                    <input id="mName" type="text" placeholder="이름 (필수)" class="w-full p-4 bg-gray-100 rounded-2xl outline-none font-bold">
+                    <input id="mPhone" type="tel" placeholder="전화번호" class="w-full p-4 bg-gray-100 rounded-2xl outline-none">
+                    <div class="grid grid-cols-2 gap-2"><input id="mHeight" type="number" placeholder="키(cm)" class="p-4 bg-gray-100 rounded-2xl outline-none"><input id="mWeight" type="number" placeholder="몸무게(kg)" class="p-4 bg-gray-100 rounded-2xl outline-none"></div>
+                    <textarea id="mNote" placeholder="비고 및 신체사이즈 등" class="w-full p-4 bg-gray-100 rounded-2xl h-24 outline-none"></textarea>
+                </div>
+                <div class="flex gap-2 mt-8">
+                    <button id="delMemBtn" onclick="deleteMember()" class="flex-1 py-4 bg-red-100 text-red-500 font-bold rounded-2xl hidden">회원탈퇴</button>
                     <button onclick="closeModal('memberModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
-                    <button onclick="saveMember()" class="flex-[2] py-4 bg-red-500 text-white font-black rounded-2xl">저장하기</button>
+                    <button onclick="saveMember()" class="flex-[2] py-4 bg-red-600 text-white font-black rounded-2xl shadow-xl">정보 저장</button>
                 </div>
             </div>
         </div>
 
         <div id="ledgerModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end">
             <div class="bg-white w-full max-w-md mx-auto rounded-t-[3rem] p-8 modal-up">
-                <h3 id="lTitle" class="text-xl font-black mb-6 italic">입력</h3>
+                <h3 id="lTitle" class="text-xl font-black mb-6 italic text-center">장부 입력</h3>
                 <div class="space-y-4 mb-8">
-                    <select id="lMember" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold"></select>
-                    <input id="lCategory" type="text" placeholder="항목 (회비, 찬조, 식대 등)" class="w-full p-4 bg-gray-100 rounded-xl outline-none font-bold">
-                    <input id="lAmount" type="number" placeholder="금액" class="w-full p-4 bg-gray-100 rounded-xl outline-none text-2xl font-black text-red-500">
+                    <select id="lMember" class="w-full p-4 bg-gray-100 rounded-2xl outline-none font-bold"></select>
+                    <input id="lCategory" type="text" placeholder="항목 (회비, 식대, 찬조 등)" class="w-full p-4 bg-gray-100 rounded-2xl outline-none font-bold">
+                    <input id="lAmount" type="number" placeholder="금액" class="w-full p-4 bg-gray-100 rounded-2xl outline-none text-3xl font-black text-center text-red-600">
                 </div>
                 <div class="flex gap-2">
                     <button onclick="closeModal('ledgerModal')" class="flex-1 py-4 bg-gray-100 font-bold rounded-2xl">취소</button>
-                    <button onclick="saveLedger()" class="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl">저장하기</button>
+                    <button onclick="saveLedger()" class="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl">기록하기</button>
                 </div>
             </div>
         </div>
 
-        <nav class="fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-md rounded-[2.5rem] shadow-2xl border flex justify-around items-center px-4 z-50">
-            <button onclick="switchTab('home')" id="n-home" class="nav-active flex flex-col items-center"><span class="text-xl">🏠</span><span class="text-[8px] font-black">홈</span></button>
+        <nav class="fixed bottom-8 left-8 right-8 h-20 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2.5rem] flex justify-around items-center px-4 z-50 border border-slate-50">
+            <button onclick="switchTab('home')" id="n-home" class="nav-active flex flex-col items-center"><span class="text-xl">🏠</span><span class="text-[8px] font-black">HOME</span></button>
+            <button onclick="switchTab('ledger')" id="n-ledger" class="text-slate-300 flex flex-col items-center"><span class="text-xl">📉</span><span class="text-[8px] font-black">장부</span></button>
             <button onclick="switchTab('member')" id="n-member" class="text-slate-300 flex flex-col items-center"><span class="text-xl">👥</span><span class="text-[8px] font-black">회원</span></button>
-            <button onclick="switchTab('ledger')" id="n-ledger" class="text-slate-300 flex flex-col items-center"><span class="text-xl">📝</span><span class="text-[8px] font-black">장부</span></button>
             <button onclick="backupData()" class="text-slate-300 flex flex-col items-center"><span class="text-xl">💾</span><span class="text-[8px] font-black">백업</span></button>
         </nav>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('chongmu_v61_db')) || {
-            notice: "우리 모임 화이팅!",
-            emblem: null,
-            eventPhoto: null,
-            members: [],
-            history: []
-        };
-        let currentMode = 'INCOME';
-        let editingMemberId = null;
-        let chart = null;
+        let db = JSON.parse(localStorage.getItem('chongmu_v7_db')) || { notice: "⚽ 우리 모임의 발전을 기원합니다!", eventPhoto: null, members: [], history: [] };
+        let currentMode = 'INCOME', editingMemberId = null, chart = null, currentFilter = 'month';
 
-        function saveData() { 
-            localStorage.setItem('chongmu_v61_db', JSON.stringify(db)); 
-            render(); 
-        }
-
+        function saveData() { localStorage.setItem('chongmu_v7_db', JSON.stringify(db)); render(); }
+        
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('nav button').forEach(b => b.classList.add('text-slate-300'));
             document.getElementById(id + 'Tab').classList.add('active');
-            document.getElementById('n-' + id).classList.remove('text-slate-300');
+            document.getElementById('n-' + id).classList.remove('text-slate-300', 'nav-active');
             document.getElementById('n-' + id).classList.add('nav-active');
-            if(id === 'ledger') setTimeout(drawChart, 100);
+            if(id === 'ledger') setTimeout(() => drawChart(currentFilter), 100);
             render();
         }
 
-        function editNotice() {
-            const n = prompt("공지사항 수정", db.notice);
-            if(n !== null) { db.notice = n; saveData(); }
-        }
-
         function uploadImage(type) {
-            const file = document.getElementById(type + 'Upload').files[0];
+            const file = document.getElementById('eventUpload').files[0];
             if(!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => { db[type] = e.target.result; saveData(); };
+            reader.onload = (e) => { 
+                db.eventPhoto = e.target.result; 
+                saveData(); 
+                showEventOverlay();
+            };
             reader.readAsDataURL(file);
         }
 
-        function hideEventPhoto() { document.getElementById('eventPhotoArea').classList.add('hidden'); }
+        function showEventOverlay() {
+            if(!db.eventPhoto) return;
+            const overlay = document.getElementById('eventOverlay');
+            document.getElementById('eventFullImg').src = db.eventPhoto;
+            overlay.classList.remove('hidden');
+        }
 
+        function closeEventOverlay(e) {
+            const overlay = document.getElementById('eventOverlay');
+            const img = document.getElementById('eventFullImg');
+            if(!overlay.classList.contains('hidden') && e.target !== img) {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function updateChartFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('#ledgerTab button').forEach(b => b.classList.replace('bg-slate-900', 'bg-slate-100'));
+            document.querySelectorAll('#ledgerTab button').forEach(b => b.classList.replace('text-white', 'text-slate-900'));
+            const activeBtn = document.getElementById('btn-' + filter);
+            activeBtn.classList.replace('bg-slate-100', 'bg-slate-900');
+            activeBtn.classList.replace('text-slate-900', 'text-white');
+            drawChart(filter);
+        }
+
+        // 그래프 그리기 로직 (주/월/년 필터 포함)
+        function drawChart(filter) {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            if(chart) chart.destroy();
+
+            let filteredData = [...db.history].reverse();
+            const now = new Date();
+            
+            if(filter === 'week') {
+                const weekAgo = new Date(now.setDate(now.getDate() - 7));
+                filteredData = filteredData.filter(h => new Date(h.date) >= weekAgo);
+            } else if(filter === 'month') {
+                const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+                filteredData = filteredData.filter(h => new Date(h.date) >= monthAgo);
+            } else if(filter === 'year') {
+                const yearAgo = new Date(now.setFullYear(now.getFullYear() - 1));
+                filteredData = filteredData.filter(h => new Date(h.date) >= yearAgo);
+            }
+
+            let sum = 0;
+            const points = filteredData.map(h => { sum += h.amt; return sum; });
+            const labels = filteredData.map(h => h.date.slice(5));
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '잔액',
+                        data: points,
+                        borderColor: '#ef4444',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                            gradient.addColorStop(0, 'rgba(239, 68, 68, 0)');
+                            gradient.addColorStop(1, 'rgba(239, 68, 68, 0.2)');
+                            return gradient;
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 8 } } },
+                        y: { grid: { borderDash: [5, 5] }, ticks: { font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+
+        // 회원 및 장부 기본 기능
         function openMemberModal(id = null) {
-            editingMemberId = id;
-            resetMemberFields();
+            editingMemberId = id; resetMemberFields();
             if(id) {
                 const m = db.members.find(x => x.id === id);
-                document.getElementById('mName').value = m.name;
-                document.getElementById('mAge').value = m.age;
-                document.getElementById('mBirth').value = m.birth;
-                document.getElementById('mPhone').value = m.phone;
-                document.getElementById('mAddress').value = m.address;
-                document.getElementById('mHeight').value = m.height;
-                document.getElementById('mWeight').value = m.weight;
-                document.getElementById('mShoes').value = m.shoes;
-                document.getElementById('mClothes').value = m.clothes;
-                document.getElementById('mNote').value = m.note;
-                if(m.photo) {
-                    document.getElementById('mPhotoPreview').src = m.photo;
-                    document.getElementById('mPhotoPreview').classList.remove('hidden');
-                    document.getElementById('mPhotoText').classList.add('hidden');
-                }
+                document.getElementById('mName').value = m.name; document.getElementById('mPhone').value = m.phone;
+                document.getElementById('mHeight').value = m.height; document.getElementById('mWeight').value = m.weight; document.getElementById('mNote').value = m.note;
+                if(m.photo) { document.getElementById('mPhotoPreview').src = m.photo; document.getElementById('mPhotoPreview').classList.remove('hidden'); document.getElementById('mPhotoText').classList.add('hidden'); }
                 document.getElementById('delMemBtn').classList.remove('hidden');
-            } else {
-                document.getElementById('delMemBtn').classList.add('hidden');
-            }
+            } else { document.getElementById('delMemBtn').classList.add('hidden'); }
             document.getElementById('memberModal').classList.remove('hidden');
         }
-
-        function resetMemberFields() {
-            ['mName','mAge','mBirth','mPhone','mAddress','mHeight','mWeight','mShoes','mClothes','mNote'].forEach(f => document.getElementById(f).value = '');
-            document.getElementById('mPhotoPreview').src = '';
-            document.getElementById('mPhotoPreview').classList.add('hidden');
-            document.getElementById('mPhotoText').classList.remove('hidden');
-            document.getElementById('mPhotoUpload').value = null;
-        }
-
-        function previewMemberPhoto(e) {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    document.getElementById('mPhotoPreview').src = ev.target.result;
-                    document.getElementById('mPhotoPreview').classList.remove('hidden');
-                    document.getElementById('mPhotoText').classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // [여기가 수정된 저장 함수입니다]
+        function resetMemberFields() { ['mName','mPhone','mHeight','mWeight','mNote'].forEach(f => document.getElementById(f).value = ''); document.getElementById('mPhotoPreview').classList.add('hidden'); document.getElementById('mPhotoText').classList.remove('hidden'); }
+        function previewMemberPhoto(e) { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { document.getElementById('mPhotoPreview').src = ev.target.result; document.getElementById('mPhotoPreview').classList.remove('hidden'); document.getElementById('mPhotoText').classList.add('hidden'); }; reader.readAsDataURL(file); } }
         function saveMember() {
             const photo = document.getElementById('mPhotoPreview').src;
-            const member = {
-                id: editingMemberId || Date.now(),
-                name: document.getElementById('mName').value,
-                age: document.getElementById('mAge').value,
-                birth: document.getElementById('mBirth').value,
-                phone: document.getElementById('mPhone').value,
-                address: document.getElementById('mAddress').value,
-                height: document.getElementById('mHeight').value,
-                weight: document.getElementById('mWeight').value,
-                shoes: document.getElementById('mShoes').value,
-                clothes: document.getElementById('mClothes').value,
-                note: document.getElementById('mNote').value,
-                photo: photo.startsWith('data') ? photo : null,
-                totalPaid: editingMemberId ? db.members.find(x => x.id === editingMemberId).totalPaid : 0
-            };
-
-            if(!member.name) return alert("이름을 입력하세요!");
-
-            if(editingMemberId) {
-                const idx = db.members.findIndex(x => x.id === editingMemberId);
-                db.members[idx] = member;
-            } else {
-                db.members.push(member);
-            }
-
-            saveData();
-            closeModal('memberModal'); // 창 닫기
-            alert("회원 정보가 저장되었습니다.");
+            const member = { id: editingMemberId || Date.now(), name: document.getElementById('mName').value, phone: document.getElementById('mPhone').value, height: document.getElementById('mHeight').value, weight: document.getElementById('mWeight').value, note: document.getElementById('mNote').value, photo: photo.startsWith('data') ? photo : null, totalPaid: editingMemberId ? db.members.find(x => x.id === editingMemberId).totalPaid : 0 };
+            if(!member.name) return alert("이름 필수!");
+            if(editingMemberId) { const idx = db.members.findIndex(x => x.id === editingMemberId); db.members[idx] = member; } else { db.members.push(member); }
+            saveData(); closeModal('memberModal'); alert("회원 정보 저장 완료!");
         }
-
-        function deleteMember() {
-            if(!confirm("탈퇴 처리할까요?")) return;
-            db.members = db.members.filter(x => x.id !== editingMemberId);
-            saveData();
-            closeModal('memberModal');
-        }
-
-        function openLedgerModal(mode) {
-            currentMode = mode;
-            document.getElementById('lTitle').innerText = mode === 'INCOME' ? '💰 수입 기록' : '💸 지출 기록';
-            document.getElementById('lMember').innerHTML = '<option value="">회원 선택(지출시 패스)</option>' + 
-                db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-            document.getElementById('lCategory').value = '';
-            document.getElementById('lAmount').value = '';
-            document.getElementById('ledgerModal').classList.remove('hidden');
-        }
-
+        function deleteMember() { if(!confirm("정말 삭제하시겠습니까?")) return; db.members = db.members.filter(x => x.id !== editingMemberId); saveData(); closeModal('memberModal'); }
+        function openLedgerModal(mode) { currentMode = mode; document.getElementById('lTitle').innerText = mode === 'INCOME' ? '💰 수입 기록' : '💸 지출 기록'; document.getElementById('lMember').innerHTML = '<option value="">회원 선택(필요시)</option>' + db.members.map(m => `<option value="${m.name}">${m.name}</option>`).join(''); document.getElementById('ledgerModal').classList.remove('hidden'); }
         function saveLedger() {
-            const name = document.getElementById('lMember').value;
-            const cat = document.getElementById('lCategory').value;
-            let amt = parseInt(document.getElementById('lAmount').value);
-            if(!amt || !cat) return alert("내역을 확인하세요.");
-            if(currentMode === 'EXPENSE') amt = -amt;
-
-            db.history.unshift({ id: Date.now(), name, cat, amt, date: new Date().toLocaleDateString() });
-            if(currentMode === 'INCOME' && name) {
-                const m = db.members.find(x => x.name === name);
-                if(m) m.totalPaid = (m.totalPaid || 0) + amt;
-            }
-            saveData();
-            closeModal('ledgerModal');
+            const name = document.getElementById('lMember').value; const cat = document.getElementById('lCategory').value; let amt = parseInt(document.getElementById('lAmount').value);
+            if(!amt || !cat) return alert("내용을 입력하세요"); if(currentMode === 'EXPENSE') amt = -amt;
+            db.history.unshift({ id: Date.now(), name, cat, amt, date: new Date().toISOString().split('T')[0] });
+            if(currentMode === 'INCOME' && name) { const m = db.members.find(x => x.name === name); if(m) m.totalPaid = (m.totalPaid || 0) + amt; }
+            saveData(); closeModal('ledgerModal'); alert("기록 완료!");
         }
-
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function render() {
             document.getElementById('noticeArea').innerText = db.notice;
             const total = db.history.reduce((s, a) => s + a.amt, 0);
             document.getElementById('mainBalance').innerText = total.toLocaleString() + "원";
-
-            // 이미지
-            if(db.emblem) { document.getElementById('emblemImg').src = db.emblem; document.getElementById('emblemImg').classList.remove('hidden'); document.getElementById('emblemText').classList.add('hidden'); }
-            if(db.eventPhoto) { document.getElementById('eventPhotoImg').src = db.eventPhoto; document.getElementById('eventPhotoArea').classList.remove('hidden'); }
-
-            // 회원 리스트
+            
             document.getElementById('memberList').innerHTML = db.members.map(m => `
-                <div onclick="openMemberModal(${m.id})" class="p-6 bg-white rounded-[2rem] shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                            ${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `<span class="text-2xl">👤</span>`}
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-black">${m.name} <span class="text-[10px] text-gray-400">${m.age || ''}</span></h4>
-                            <p class="text-[10px] text-gray-400 font-bold">${m.phone || ''}</p>
-                        </div>
-                        <div class="text-right"><p class="text-[9px] font-bold text-blue-500">납부합계</p><p class="font-black text-sm">${(m.totalPaid || 0).toLocaleString()}원</p></div>
-                    </div>
-                </div>
-            `).join('');
+                <div onclick="openMemberModal(${m.id})" class="p-5 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center">${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `👤`}</div>
+                    <div class="flex-1"><h4 class="font-black text-sm">${m.name}</h4><p class="text-[10px] text-slate-400 font-bold">${m.phone || '연락처 없음'}</p></div>
+                    <div class="text-right"><p class="text-[8px] font-bold text-blue-500 uppercase">Paid</p><p class="font-black text-xs">${(m.totalPaid || 0).toLocaleString()}원</p></div>
+                </div>`).join('');
 
-            // 히스토리
-            const hHtml = (d) => d.map(h => `
-                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <div><p class="font-black text-xs">${h.cat}</p><p class="text-[8px] text-gray-400">${h.date} ${h.name ? '· '+h.name : ''}</p></div>
-                    <span class="font-black text-sm ${h.amt > 0 ? 'text-blue-500' : 'text-slate-800'}">${h.amt.toLocaleString()}원</span>
-                </div>
-            `).join('');
+            const hHtml = (d) => d.map(h => `<div class="flex justify-between items-center p-5 bg-slate-50 rounded-2xl border border-slate-100"><div><p class="font-black text-[11px]">${h.cat}</p><p class="text-[8px] text-slate-400 font-bold">${h.date} ${h.name ? '· '+h.name : ''}</p></div><span class="font-black text-xs ${h.amt > 0 ? 'text-blue-600' : 'text-slate-900'}">${h.amt.toLocaleString()}원</span></div>`).join('');
             document.getElementById('mainHistory').innerHTML = hHtml(db.history.slice(0, 5));
             document.getElementById('fullHistory').innerHTML = hHtml(db.history);
-        }
-
-        function drawChart() {
-            const ctx = document.getElementById('balanceChart').getContext('2d');
-            if(chart) chart.destroy();
-            const data = [...db.history].reverse();
-            let sum = 0;
-            const points = data.map(h => { sum += h.amt; return sum; });
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(h => h.date),
-                    datasets: [{ label: '잔액흐름', data: points, borderColor: '#ef4444', tension: 0.3, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }]
-                },
-                options: { plugins: { legend: { display: false } }, scales: { x: { display: false } } }
-            });
         }
 
         function backupData() {
             const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `chongmu_backup.json`; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `chongmu_v7_backup.json`; a.click();
         }
 
         render();
+        updateChartFilter('month');
     </script>
 </body>
 </html>
